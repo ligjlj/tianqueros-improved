@@ -1,0 +1,7 @@
+<launch>
+  <!-- MotionController — sole /cmd_vel publisher.
+       Priority: recovery > navigation > stop -->
+
+  <node name="motion_controller" pkg="warehouse_motion" type="motion_controller_node"
+        output="screen"/>
+</launch>

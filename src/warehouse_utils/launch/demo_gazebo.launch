@@ -60,12 +60,20 @@
   <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf"
         args="0.15 0 0.15 0 0 0 base_link laser"/>
 
-  <!-- ===== 4. Warehouse Navigation Stack ===== -->
-  <include file="$(find warehouse_planner)/launch/astar.launch"/>
-  <include file="$(find warehouse_controller)/launch/dwa.launch"/>
-  <include file="$(find warehouse_exploration)/launch/exploration.launch"/>
+  <!-- ===== 4. MotionController (ADR-001: sole /cmd_vel publisher) ===== -->
+  <include file="$(find warehouse_motion)/launch/motion.launch"/>
 
-  <!-- ===== 5. RViz ===== -->
+  <!-- ===== 5. Warehouse Navigation Stack ===== -->
+  <!-- DWA → /cmd_vel_nav (priority 2), Exploration → /cmd_vel_recovery (priority 3) -->
+  <include file="$(find warehouse_planner)/launch/astar.launch"/>
+  <include file="$(find warehouse_controller)/launch/dwa.launch">
+    <remap from="/cmd_vel" to="/cmd_vel_nav"/>
+  </include>
+  <include file="$(find warehouse_exploration)/launch/exploration.launch">
+    <remap from="/cmd_vel" to="/cmd_vel_recovery"/>
+  </include>
+
+  <!-- ===== 6. RViz ===== -->
   <node name="rviz" pkg="rviz" type="rviz"
         args="-d $(find warehouse_utils)/config/demo.rviz"
         required="false"/>
