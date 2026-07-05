@@ -1,7 +1,9 @@
 <launch>
   <arg name="config_file" default="$(find warehouse_controller)/config/dwa.yaml"/>
+  <arg name="cmd_vel_topic" default="/cmd_vel"/>
   <node name="dwa_controller" pkg="warehouse_controller" type="dwa_controller_node"
         output="screen" respawn="false">
     <rosparam file="$(arg config_file)" command="load"/>
+    <remap from="/cmd_vel" to="$(arg cmd_vel_topic)"/>
   </node>
 </launch>

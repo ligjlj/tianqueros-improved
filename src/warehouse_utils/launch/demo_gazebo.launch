@@ -67,10 +67,10 @@
   <!-- DWA → /cmd_vel_nav (priority 2), Exploration → /cmd_vel_recovery (priority 3) -->
   <include file="$(find warehouse_planner)/launch/astar.launch"/>
   <include file="$(find warehouse_controller)/launch/dwa.launch">
-    <remap from="/cmd_vel" to="/cmd_vel_nav"/>
+    <arg name="cmd_vel_topic" value="/cmd_vel_nav"/>
   </include>
   <include file="$(find warehouse_exploration)/launch/exploration.launch">
-    <remap from="/cmd_vel" to="/cmd_vel_recovery"/>
+    <arg name="cmd_vel_topic" value="/cmd_vel_recovery"/>
   </include>
 
   <!-- ===== 6. RViz ===== -->
