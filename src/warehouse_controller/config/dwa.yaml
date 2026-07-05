@@ -1,0 +1,19 @@
+# DWA local planner configuration
+
+max_linear_vel:   1.0    # m/s
+max_angular_vel:  1.5    # rad/s
+max_linear_accel:  2.0   # m/s^2
+max_angular_accel: 3.0   # rad/s^2
+
+predict_time:     1.5    # s (trajectory simulation horizon)
+dt:               0.1    # s (simulation step)
+
+v_samples:        10     # linear velocity samples
+w_samples:        20     # angular velocity samples
+
+# Scoring weights
+alpha:  0.5    # heading (alignment with goal)
+beta:   2.0    # clearance (distance from obstacles)
+gamma:  0.3    # speed (prefer higher velocity)
+
+goal_tolerance_m:  0.3   # m (stop when within this distance of goal)

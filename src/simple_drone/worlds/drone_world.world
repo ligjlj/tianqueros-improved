@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<sdf version="1.7">
+  <world name="drone_world">
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <!-- Obstacle 1: Building -->
+    <model name="building1">
+      <static>true</static>
+      <pose>5 0 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>2 2 3</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>2 2 3</size></box></geometry>
+          <material>
+            <ambient>0.8 0.3 0.3 1</ambient>
+            <diffuse>0.8 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Obstacle 2: Pillar -->
+    <model name="pillar1">
+      <static>true</static>
+      <pose>-3 5 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><cylinder><radius>0.3</radius><length>3</length></cylinder></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><cylinder><radius>0.3</radius><length>3</length></cylinder></geometry>
+          <material>
+            <ambient>0.9 0.7 0.2 1</ambient>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Obstacle 3: Wall -->
+    <model name="wall1">
+      <static>true</static>
+      <pose>0 -6 0.75 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>8 0.2 1.5</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>8 0.2 1.5</size></box></geometry>
+          <material>
+            <ambient>0.5 0.5 0.5 1</ambient>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Waypoint markers (visual only) -->
+    <model name="waypoint1">
+      <static>true</static>
+      <pose>3 3 1.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <emissive>0 0.5 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="waypoint2">
+      <static>true</static>
+      <pose>-3 -3 1.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <emissive>0 0.5 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="waypoint3">
+      <static>true</static>
+      <pose>6 -2 1.5 0 0 0</pose>
+      <link name="link">
+        <visual name="visual">
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+          <material>
+            <ambient>0 1 0 1</ambient>
+            <emissive>0 0.5 0 1</emissive>
+          </material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

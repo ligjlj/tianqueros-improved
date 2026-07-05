@@ -1,0 +1,18 @@
+<launch>
+  <!-- Cartographer → Map Bridge -->
+  <node pkg="simple_planner" type="cartographer_map_bridge.py" name="cartographer_map_bridge"
+        output="screen">
+    <param name="resolution" value="0.05"/>
+    <param name="map_width" value="800"/>
+    <param name="map_height" value="800"/>
+  </node>
+
+  <!-- RRT Planner -->
+  <node pkg="simple_planner" type="rrt_planner.py" name="rrt_planner"
+        output="screen">
+    <param name="step_size" value="15"/>
+    <param name="max_iter" value="5000"/>
+    <param name="goal_sample_rate" value="0.1"/>
+    <param name="robot_radius" value="2"/>
+  </node>
+</launch>

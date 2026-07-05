@@ -1,0 +1,16 @@
+# Frontier exploration configuration
+
+frontier:
+  min_cluster_size: 5     # Minimum cells in a frontier cluster
+
+goal:
+  weight_distance:      1.0   # Prefer closer frontiers
+  weight_information:   2.0   # Prefer frontiers with more unknown neighbors
+  weight_size:          1.5   # Prefer larger frontier clusters
+  weight_reachability:  3.0   # Strongly prefer reachable frontiers
+
+navigation:
+  goal_tolerance_m:  0.5    # Distance (m) to consider goal reached
+  path_timeout_s:    10.0   # Max wait for A* to produce path
+  goal_timeout_s:    30.0   # Max time to reach a single goal
+  max_retries:       3      # Max consecutive failures before skipping frontier

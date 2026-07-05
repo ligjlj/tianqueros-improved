@@ -1,0 +1,16 @@
+<launch>
+  <!-- Cartographer → Map Bridge -->
+  <node pkg="simple_planner" type="cartographer_map_bridge.py" name="cartographer_map_bridge"
+        output="screen">
+    <param name="resolution" value="0.05"/>
+    <param name="map_width" value="800"/>
+    <param name="map_height" value="800"/>
+  </node>
+
+  <!-- A* Planner -->
+  <node pkg="simple_planner" type="astar_planner.py" name="astar_planner"
+        output="screen">
+    <param name="robot_radius" value="2"/>
+    <param name="heuristic_weight" value="1.0"/>
+  </node>
+</launch>

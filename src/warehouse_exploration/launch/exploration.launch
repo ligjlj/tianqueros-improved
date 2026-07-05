@@ -1,0 +1,10 @@
+<launch>
+  <arg name="config_file" default="$(find warehouse_exploration)/config/exploration.yaml"/>
+
+  <node name="exploration" pkg="warehouse_exploration" type="exploration_node"
+        output="screen" respawn="false">
+    <rosparam file="$(arg config_file)" command="load"/>
+    <param name="inflation_radius_m" value="0.3"/>
+    <param name="robot_radius_m" value="0.3"/>
+  </node>
+</launch>

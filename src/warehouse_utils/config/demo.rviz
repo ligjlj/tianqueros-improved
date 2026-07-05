@@ -1,0 +1,51 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+  - Class: rviz/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz/Map
+      Name: Map
+      Topic: /map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+    - Class: rviz/Path
+      Name: Global Path
+      Topic: /global_path
+      Color: 0; 255; 0
+      Enabled: true
+    - Class: rviz/Path
+      Name: Local Path
+      Topic: /local_path
+      Color: 255; 255; 0
+      Enabled: true
+    - Class: rviz/Marker
+      Name: AStar Waypoints
+      Topic: /global_path_marker
+      Enabled: true
+    - Class: rviz/Marker
+      Name: DWA Trajectories
+      Topic: /dwa_traj
+      Enabled: true
+    - Class: rviz/Marker
+      Name: Frontiers
+      Topic: /frontier_marker
+      Enabled: true
+    - Class: rviz/Odometry
+      Name: Odometry
+      Topic: /odom
+      Enabled: true
+  Global Options:
+    Background Color: 30; 30; 30
+    Fixed Frame: map
+  Views:
+    Current:
+      Class: rviz/TopDownOrtho
+      Name: TopDown
+      Target Frame: map
+      X: 0
+      Y: 0
+      Scale: 50

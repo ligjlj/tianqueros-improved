@@ -1,0 +1,5 @@
+# Grid Map configuration for warehouse_utils
+# Loaded by ROS nodes that create GridMap instances.
+
+inflation_radius_m:  1.0   # Inflation radius in meters
+robot_radius_m:      0.5   # Robot footprint radius in meters

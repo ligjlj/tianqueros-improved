@@ -1,0 +1,73 @@
+<launch>
+  <!-- ============================================================
+       Warehouse Navigation System — Full Gazebo Demo
+       ============================================================
+       
+       World:    drone_world.world (building + pillar + wall)
+       Robot:    ground_robot.urdf (diff-drive, 360° laser)
+       SLAM:     Cartographer (revo_lds config)
+       Planning: A* global + DWA local
+       Explore:  Frontier-based autonomous exploration
+       
+       Usage:
+         roslaunch warehouse_utils demo_gazebo.launch
+       
+       In RViz: use "2D Nav Goal" to set destination, or let
+       exploration auto-discover the map.
+  -->
+
+  <!-- ===== 1. Gazebo World ===== -->
+  <env name="GAZEBO_MODEL_PATH"
+       value="$(find simple_drone)/models:$(optenv GAZEBO_MODEL_PATH)"/>
+  <env name="GAZEBO_PLUGIN_PATH"
+       value="/opt/ros/noetic/lib:$(optenv GAZEBO_PLUGIN_PATH)"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="/home/ligjlj/Desktop/shu-sit/repos/TianqueROS/Experiments/drone_dev/worlds/maze.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <!-- ===== 2. Spawn Ground Robot (with timeout for maze loading) ===== -->
+  <param name="robot_description"
+         textfile="$(find simple_drone)/models/ground_robot.urdf"/>
+  <node name="spawn_robot" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -model ground_robot -param robot_description
+              -x 0 -y 0 -z 0.1 -unpause"
+        output="screen"/>
+
+  <!-- ===== 3. Hector SLAM (lightweight, no bag needed) ===== -->
+  <node pkg="hector_mapping" type="hector_mapping" name="hector_mapping"
+        output="screen">
+    <param name="pub_map_odom_transform" value="true"/>
+    <param name="map_frame" value="map"/>
+    <param name="odom_frame" value="odom"/>
+    <param name="base_frame" value="base_link"/>
+    <param name="scan_topic" value="scan"/>
+    <param name="map_size" value="512"/>
+    <param name="map_update_distance_thresh" value="0.1"/>
+    <param name="map_update_angle_thresh" value="0.1"/>
+    <!-- Laser is on base_link, hector needs laser frame -->
+    <param name="pub_map_scanmatch_transform" value="true"/>
+  </node>
+
+  <!-- Hector needs base_link→laser TF. Our laser is ON base_link,
+       but hector_mapping expects a separate laser frame.
+       Publish identity transform: base_link → laser -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf"
+        args="0.15 0 0.15 0 0 0 base_link laser"/>
+
+  <!-- ===== 4. Warehouse Navigation Stack ===== -->
+  <include file="$(find warehouse_planner)/launch/astar.launch"/>
+  <include file="$(find warehouse_controller)/launch/dwa.launch"/>
+  <include file="$(find warehouse_exploration)/launch/exploration.launch"/>
+
+  <!-- ===== 5. RViz ===== -->
+  <node name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find warehouse_utils)/config/demo.rviz"
+        required="false"/>
+
+</launch>

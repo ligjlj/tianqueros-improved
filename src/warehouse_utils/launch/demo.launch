@@ -1,0 +1,48 @@
+<launch>
+  <!-- ============================================================
+       Warehouse Navigation System — Full Demo
+       ============================================================
+       
+       Launches:
+         1. Demo map publisher (warehouse-like environment)
+         2. Fake odometry (for testing without a real robot)
+         3. A* global planner
+         4. DWA local controller
+         5. Frontier exploration
+         6. RViz with pre-configured display
+       
+       Usage:
+         roslaunch warehouse_utils demo.launch
+       
+       Then in RViz:
+         - Use "2D Nav Goal" tool to set a navigation goal
+         - Watch A* plan globally, DWA track locally
+         - Frontiers appear as blue cubes; exploration auto-selects goals
+  -->
+
+  <!-- Demo map (procedural warehouse) -->
+  <node name="demo_map_pub" pkg="warehouse_utils" type="demo_map_pub.py"
+        output="screen"/>
+
+  <!-- Fake odometry (publishes /odom at origin) -->
+  <node name="fake_odom" pkg="warehouse_utils" type="fake_odom_pub.py"
+        output="screen"/>
+
+  <!-- Fake base_link → map TF (required by A* for pose lookup) -->
+  <node name="fake_tf" pkg="tf2_ros" type="static_transform_publisher"
+        args="0 0 0 0 0 0 map base_link"/>
+
+  <!-- A* Global Planner -->
+  <include file="$(find warehouse_planner)/launch/astar.launch"/>
+
+  <!-- DWA Local Controller -->
+  <include file="$(find warehouse_controller)/launch/dwa.launch"/>
+
+  <!-- Frontier Exploration -->
+  <include file="$(find warehouse_exploration)/launch/exploration.launch"/>
+
+  <!-- RViz -->
+  <node name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find warehouse_utils)/config/demo.rviz"
+        required="false"/>
+</launch>

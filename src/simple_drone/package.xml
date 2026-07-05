@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>simple_drone</name>
+  <version>0.1.0</version>
+  <description>Autonomous quadrotor simulation with Gazebo</description>
+  <maintainer email="ligjlj@example.com">ligjlj</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>rospy</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>gazebo_ros</depend>
+</package>

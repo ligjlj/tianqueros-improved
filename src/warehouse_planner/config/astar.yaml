@@ -1,0 +1,4 @@
+# A* global planner configuration
+
+heuristic_weight:  1.0    # 1.0 = optimal A*, <1 = Dijkstra-like, >1 = greedy
+collision_margin_m: 0.1   # Extra safety margin around inflated obstacles (meters)
