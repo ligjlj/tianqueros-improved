@@ -24,7 +24,7 @@ Mission → Exploration → Navigation → MotionController → cmd_vel
 | PR | 内容 | 状态 |
 |---|---|---|
 | PR1 | MotionController 接管 `/cmd_vel` | ✅ |
-| PR2 | MissionManager 接管启动流程 | ⬜ |
+| PR2 | MissionManager 接管启动流程 | ✅ |
 | PR3 | EventBus / Event 定义 | ⬜ |
 | PR4 | CostmapManager | ⬜ |
 | PR5 | PlannerInterface | ⬜ |
