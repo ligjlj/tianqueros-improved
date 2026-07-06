@@ -11,9 +11,11 @@
   <build_depend>nav_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>warehouse_utils</build_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>warehouse_utils</exec_depend>
   <export><build_type>catkin</build_type></export>
 </package>

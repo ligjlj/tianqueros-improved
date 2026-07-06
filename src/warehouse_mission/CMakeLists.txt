@@ -3,8 +3,8 @@ project(warehouse_mission)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(catkin REQUIRED COMPONENTS roscpp nav_msgs std_msgs geometry_msgs)
-catkin_package(CATKIN_DEPENDS roscpp nav_msgs std_msgs geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp nav_msgs std_msgs geometry_msgs warehouse_utils)
+catkin_package(CATKIN_DEPENDS roscpp nav_msgs std_msgs geometry_msgs warehouse_utils)
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(mission_node src/mission_node.cpp)

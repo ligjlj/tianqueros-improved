@@ -23,9 +23,9 @@
 - [ ] 状态转移单元测试
 
 ### 1.4 事件机制
-- [ ] 定义事件类型：MAP_READY、SCAN_COMPLETE、EXPLORATION_DONE、ERROR
-- [ ] 事件总线：进程内发布/订阅（不走 ROS Topic，零开销）
-- [ ] FSM 由事件驱动转移，不轮询
+- [x] 定义事件类型：MAP_READY、SCAN_COMPLETE、EXPLORATION_DONE、ERROR
+- [x] 事件总线：进程内发布/订阅（不走 ROS Topic，零开销）
+- [x] FSM 由事件驱动转移，不轮询
 
 ### 1.5 诊断模块
 - [ ] 实现 ResourceMonitor：CPU、tick 耗时、地图更新延迟
