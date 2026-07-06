@@ -72,15 +72,15 @@ Demo 跑不起来，发现 4 个根因：
 ## 每日开发流程
 
 ```
-打开 ROADMAP → 完成一个 Task → 单元测试 → Demo验证
-→ Commit → 更新 ROADMAP checkbox → 更新 CHANGELOG → Push
+打开 ROADMAP → 选一个 Task（不是 PR）→ 编码 → 单元测试
+→ Demo验证 → Commit → 勾掉 Task → 更新 SESSION_LOG
 ```
 
-**文档职责：**
-- README：项目入口，保持简洁（给新人看）
-- ROADMAP：唯一开发计划，每天以它为准（给自己看）
-- ARCHITECTURE：怎么做（长期稳定）
-- INTERFACES：怎么通信（代码必须遵守）
-- ADR：为什么这样设计（架构变更时更新）
-- SESSION_LOG：开发日志（每天记录）
-- CHANGELOG：版本记录（每个 PR 一条）
+**原子单位是 Task，不是 PR。** PR 是一组 Task 全部完成后自然形成的 Git 提交单位。
+
+**开发时只看一个文档：ROADMAP。**
+- README：给别人看，不指导开发
+- ARCHITECTURE：架构调整时才看
+- INTERFACES：写通信代码时查
+- ROADMAP：每天开发唯一入口
+- SESSION_LOG：每天结束时记录
