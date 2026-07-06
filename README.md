@@ -12,59 +12,45 @@ Mission → Exploration → Navigation → MotionController → cmd_vel
 
 详见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
-## 分支
-
-| 分支 | 说明 |
-|---|---|
-| `master` | 稳定基线 (58 tests, demo 可运行) |
-| `refactor-v2` | 绞杀者重构 (PR1 done, PR2-12 进行中) |
-
-## 重构路线 (12 PRs)
-
-| PR | 内容 | 状态 |
-|---|---|---|
-| PR1 | MotionController 接管 `/cmd_vel` | ✅ |
-| PR2 | MissionManager 接管启动流程 | ✅ |
-| PR3 | EventBus / Event 定义 | ✅ |
-| PR4 | CostmapManager | ⬜ |
-| PR5 | PlannerInterface | ⬜ |
-| PR6 | ControllerInterface | ⬜ |
-| PR7 | NavigationManager | ⬜ |
-| PR8 | RecoveryManager | ⬜ |
-| PR9 | CoverageMonitor 后台化 | ⬜ |
-| PR10 | GoalManager 重构 | ⬜ |
-| PR11 | FrontierDetector 重构 | ⬜ |
-| PR12 | 接入 VINS-Fusion | ⬜ |
-
-## 测试
+## 快速开始
 
 ```bash
 cd ~/catkin_ws
 source /opt/ros/noetic/setup.bash
-catkin_make run_tests  # 58 tests
-```
+catkin_make
+source devel/setup.bash
 
-## Demo
+# 跑测试
+catkin_make run_tests
 
-```bash
+# 启动 Demo（需要图形桌面）
 roslaunch warehouse_utils demo_gazebo.launch
 ```
 
 Gazebo: maze.world (300 walls) + ground_robot (diff-drive, 360° laser)
-SLAM: hector_mapping
-Planning: A* + DWA
-Exploration: FSM-based with ReachabilityChecker + GoalSelector
+SLAM: hector_mapping | Planning: A* + DWA | Exploration: FSM 自主探索
 
-## 文档
+## 分支
 
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — 系统架构
-- [INTERFACES.md](docs/INTERFACES.md) — Topic 规格
-- [ADR.md](docs/ADR.md) — 架构决策记录
-- [ROADMAP.md](docs/ROADMAP.md) — 5周开发计划
-- [SESSION_LOG.md](docs/SESSION_LOG.md) — 对话记录
+| 分支 | 说明 |
+|---|---|
+| `main` | 稳定基线 |
+| `refactor-v2` | 绞杀者重构进行中 |
+
+## 文档索引
+
+| 文档 | 用途 |
+|---|---|
+| [ROADMAP.md](docs/ROADMAP.md) | 开发计划（看板，每天以它为准） |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | 系统架构 |
+| [INTERFACES.md](docs/INTERFACES.md) | Topic/Service 规格 |
+| [ADR.md](docs/ADR.md) | 架构决策记录 |
+| [CHANGELOG.md](docs/CHANGELOG.md) | 版本记录 |
+| [SESSION_LOG.md](docs/SESSION_LOG.md) | 开发日志 |
 
 ## 开发规范
 
-- 每个 PR 必须: 编译通过 + 测试通过 + Demo 可运行
-- `master` 永不动，所有开发在 `refactor-v2`
-- 文档与代码同步更新
+- 每个 PR：编译通过 + 测试通过 + Demo 可运行
+- 提交前核对 ARCHITECTURE / INTERFACES / ADR / ROADMAP
+- 只重构不改算法（绞杀者模式）
+- 只有 MotionController 发 `/cmd_vel`

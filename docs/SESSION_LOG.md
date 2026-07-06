@@ -68,3 +68,19 @@ Demo 跑不起来，发现 4 个根因：
 4. **main 分支永不动。** 所有工作在 refactor-v2。
 5. **机器人永远通过 MotionController 运动。** 没有其他 cmd_vel 发布者。
 6. **每次 PR 提交前逐项核对 docs/：** ARCHITECTURE（层级正确）、INTERFACES（Topic 无冲突）、ADR（决策合规）、ROADMAP（勾掉已完成项）。
+
+## 每日开发流程
+
+```
+打开 ROADMAP → 完成一个 Task → 单元测试 → Demo验证
+→ Commit → 更新 ROADMAP checkbox → 更新 CHANGELOG → Push
+```
+
+**文档职责：**
+- README：项目入口，保持简洁（给新人看）
+- ROADMAP：唯一开发计划，每天以它为准（给自己看）
+- ARCHITECTURE：怎么做（长期稳定）
+- INTERFACES：怎么通信（代码必须遵守）
+- ADR：为什么这样设计（架构变更时更新）
+- SESSION_LOG：开发日志（每天记录）
+- CHANGELOG：版本记录（每个 PR 一条）

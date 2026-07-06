@@ -1,173 +1,137 @@
-# 仓库自主探索框架 — 开发路线图
+# 仓库自主探索框架 — 开发路线图（看板）
 
-## 第一周：系统重构
+> 每天开发流程：打开本文件 → 完成一个 Task → 测试 → Demo → Commit → 打勾 → 结束
 
-### 1.1 包结构
-- [x] 创建 `warehouse_mission` 包
-- [x] 创建 `warehouse_motion` 包（MotionController）
-- [ ] 创建 `warehouse_navigation` 包
-- [ ] 创建 `warehouse_diagnostics` 包
-- [ ] 将现有包迁移到新结构
-- [ ] 更新所有 CMakeLists 的包间依赖
+## DONE ✅
 
-### 1.2 接口定义
-- [x] 定义所有 Topic 名称和消息类型（参照 INTERFACES.md）
-- [ ] 按需创建 `warehouse_msgs` 自定义消息
-- [x] 文档化每个 Topic 的发布者、订阅者和频率
+### PR1 MotionController
+| Risk: ★★ | DoD: `/cmd_vel` 唯一发布者为 motion_controller |
+|---|---|
+| ✅ 创建 warehouse_motion 包 | |
+| ✅ 优先级复用：recovery > nav > stop | |
+| ✅ Demo launch remap 旧节点到 /cmd_vel_nav, /cmd_vel_recovery | |
+| ✅ ADR-001 落地 | |
 
-### 1.3 MissionManager
-- [x] 实现 FSM：BOOT → WAIT_MAP → INITIAL_SCAN → EXPLORATION → FINISHED
-- [x] 发布 `/mission_state` 和 `/exploration_enable`
-- [x] 主循环 `while(ros::ok()) { spinOnce; fsm.update(); rate.sleep(); }`
-- [x] 基于系统时钟（不依赖 sim_time）
-- [x] 状态转移单元测试
+### PR2 MissionManager
+| Risk: ★★★ | DoD: BOOT→WAIT_MAP→INITIAL_SCAN→EXPLORATION→FINISHED 全链路走通 |
+|---|---|
+| ✅ 创建 warehouse_mission 包 | |
+| ✅ MissionFSM 类（可测试，回调注入） | |
+| ✅ mission_node（薄 ROS wrapper） | |
+| ✅ 9 项状态转移单元测试 | |
+| ✅ while(ros::ok()) + spinOnce + rate.sleep() 主循环 | |
+| ✅ WallTime 时钟（不依赖 sim_time） | |
 
-### 1.4 事件机制
-- [x] 定义事件类型：MAP_READY、SCAN_COMPLETE、EXPLORATION_DONE、ERROR
-- [x] 事件总线：进程内发布/订阅（不走 ROS Topic，零开销）
-- [x] FSM 由事件驱动转移，不轮询
-
-### 1.5 诊断模块
-- [ ] 实现 ResourceMonitor：CPU、tick 耗时、地图更新延迟
-- [ ] 在 `warehouse_diagnostics` 中实现 CsvLogger
-- [ ] 自适应频率：CPU > 80% 时降速
-- [ ] 全模块输出 CSV 用于实验数据采集
-
-**第一周目标：** 系统能启动、进入各生命周期状态，rviz 显示状态转移。暂不探索。
+### PR3 EventBus
+| Risk: ★★★ | DoD: 事件类型完整定义，MissionManager 由事件驱动 |
+|---|---|
+| ✅ EventBus 类（线程安全，进程内 pub/sub） | |
+| ✅ 12 种事件类型 | |
+| ✅ MissionManager mapCb 发送 MAP_READY 事件 | |
+| ✅ FSM 转移由事件触发，不轮询 | |
 
 ---
 
-## 第二周：导航重构
+## TODO ⬜
 
-### 2.1 CostmapManager
-- [ ] 四层代价地图：Raw / Inflated (0.3m) / Frontier / Dynamic (laser)
-- [ ] `getCost(layer, x, y)` 统一接口
-- [ ] ReachabilityChecker 使用 Raw 层
-- [ ] A* 使用 Planner 层
-- [ ] DWA 使用 Dynamic 层
-- [ ] 每层单元测试
+### PR4 CostmapManager
+| Risk: ★★★★★ | DoD: 四层 costmap 可独立查询，不共享全局膨胀 |
+|---|---|
+| ⬜ Day1: RawCostmap — OccupancyGrid → isFree/isOccupied/isUnknown | |
+| ⬜ Day1: PlannerCostmap — Raw + 0.3m 膨胀 | |
+| ⬜ Day2: FrontierCostmap — Raw，无膨胀（Frontier 专用） | |
+| ⬜ Day2: DynamicCostmap — Planner + 实时激光叠加 | |
+| ⬜ Day3: CostmapManager 统一接口 getCost(layer, x, y) | |
+| ⬜ Day3: 各层单元测试 | |
+| ⬜ Day3: 替换 ReachabilityChecker 使用 RawCostmap | |
+| ⬜ Day3: 替换 A* 使用 PlannerCostmap | |
 
-### 2.2 NavigationManager
-- [ ] 编排：接收目标 → 规划 → 执行 → 报告
-- [ ] 不发布 cmd_vel（委托给 LocalPlanner）
-- [ ] 发布 `/nav_status`（IDLE / PLANNING / FOLLOWING / STUCK / RECOVERY）
+### PR5 PlannerInterface
+| Risk: ★★★★ | DoD: A* 通过抽象接口调用，YAML 可切换实现 |
+|---|---|
+| ⬜ 定义 GlobalPlannerPlugin 抽象类 | |
+| ⬜ AStarPlanner 实现接口 | |
+| ⬜ YAML 参数 global_planner: "AStarPlanner" | |
+| ⬜ NavigationManager 通过接口调用（不直接 new AStarPlanner） | |
+| ⬜ 接口单元测试（mock planner） | |
 
-### 2.3 RecoveryManager
-- [ ] 恢复策略：BACKUP、ROTATE、REPLAN、SKIP_GOAL
-- [ ] 由 NavigationMonitor 触发
-- [ ] Recovery 只在活跃恢复阶段发布 cmd_vel
-- [ ] 恢复转移单元测试
+### PR6 ControllerInterface
+| Risk: ★★★★ | DoD: DWA 通过抽象接口调用，YAML 可切换 |
+|---|---|
+| ⬜ 定义 LocalPlannerPlugin 抽象类 | |
+| ⬜ DWAPlanner 实现接口 | |
+| ⬜ YAML 参数 local_planner: "DWAPlanner" | |
+| ⬜ MotionController 通过接口调用 DWA | |
+| ⬜ 接口单元测试 | |
 
-### 2.4 Planner 接口
-- [ ] 抽象 `GlobalPlanner` 基类
-- [ ] A* 实现遵循接口
-- [ ] `plan(map, start, goal) → Path`
-- [ ] 以后可加 RRT* 而不改 NavigationManager
+### PR7 NavigationManager
+| Risk: ★★★★★ | DoD: 接收 Goal → 调 Planner → 跟踪 Path → 报告状态 |
+|---|---|
+| ⬜ 编排：Goal → plan() → followPath() → nav_status | |
+| ⬜ 发布 /nav_status（IDLE/PLANNING/FOLLOWING/STUCK/RECOVERY） | |
+| ⬜ 不直接发布 cmd_vel（委托 LocalPlanner → MotionController） | |
 
-### 2.5 Controller 接口
-- [ ] 抽象 `LocalPlanner` 基类
-- [ ] DWA 实现遵循接口
-- [ ] `computeVelocity(map, state, path) → (v, w)`
-- [ ] 以后可加 TEB/MPC
+### PR8 RecoveryManager
+| Risk: ★★★ | DoD: 卡住自动后退+旋转，不影响正常导航 |
+|---|---|
+| ⬜ 恢复策略：BACKUP、ROTATE、SKIP_GOAL | |
+| ⬜ 由 NavigationMonitor 触发 | |
+| ⬜ Recovery 通过 MotionController 请求运动（不直接发 cmd_vel） | |
+| ⬜ 恢复转移单元测试 | |
 
-**第二周目标：** 机器人能可靠地从 A 点导航到 B 点（rviz "2D Nav Goal"）。
+### PR9 CoverageMonitor
+| Risk: ★★ | DoD: 后台 2Hz 统计覆盖率，独立线程 |
+|---|---|
+| ⬜ CoverageWorker 类（Job Queue 模式） | |
+| ⬜ 发布 /coverage (Float32) | |
+| ⬜ 不再在 FSM tick 里算覆盖率 | |
 
----
+### PR10 GoalManager 重构
+| Risk: ★★★ | DoD: 黑名单自动过期，评分包含失败次数 |
+|---|---|
+| ⬜ Goal 状态：UNTRIED→TRIED→FAILED→BLACKLISTED | |
+| ⬜ 黑名单 60s 自动过期 | |
+| ⬜ 单元测试：黑名单、过期、去重 | |
 
-## 第三周：自主探索
+### PR11 FrontierDetector 重构
+| Risk: ★★★ | DoD: Frontier 使用 FrontierCostmap（无膨胀） |
+|---|---|
+| ⬜ FrontierDetector 读 FrontierCostmap | |
+| ⬜ 不再受全局膨胀影响 | |
+| ⬜ 单元测试更新 | |
 
-### 3.1 FrontierDetector
-- [ ] O(N) 扫描 OccupancyGrid，找自由格子邻接未知
-- [ ] 输出：Frontier GridCell 列表
-- [ ] 单元测试：空地图、全地图、边界情况
-
-### 3.2 FrontierClusterer
-- [ ] BFS 连通分量聚类（8 邻域）
-- [ ] 输出：聚类（含中心、大小、包围盒）
-- [ ] 单元测试：单聚类、多聚类、小聚类
-
-### 3.3 GoalManager
-- [ ] 目标状态跟踪：未尝试 → 已尝试 → 失败 → 黑名单
-- [ ] 黑名单 60s 冷却，自动过期
-- [ ] 就近去重（0.5m 半径）
-- [ ] 单元测试：黑名单、过期、去重
-
-### 3.4 ExplorationFSM
-- [ ] 状态：DETECT → SELECT → PLAN → FOLLOW → RECOVERY → UPDATE
-- [ ] 事件驱动转移（不轮询）
-- [ ] 可达性过滤：只评分与机器人 BFS 连通的聚类
-- [ ] GoalSelector：四维加权评分 + 失败次数惩罚
-- [ ] 单元测试：状态转移、超时、重试
-
-### 3.5 CoverageMonitor
-- [ ] 后台 2Hz 线程，独立于 FSM
-- [ ] 订阅 `/map`，计算覆盖率百分比
-- [ ] 发布 `/coverage`（Float32）
-- [ ] 覆盖率停滞时触发 FINISHED 信号
-
-**第三周目标：** 机器人无需人工干预，自主探索并完成迷宫建图。
-
----
-
-## 第四周：视觉惯性融合
-
-### 4.1 Gazebo 传感器
-- [ ] 给 ground_robot.urdf 加 RGB 相机
-- [ ] 给 ground_robot.urdf 加 IMU（含噪声模型）
-- [ ] 验证相机发布 `/camera/image_raw`
-- [ ] 验证 IMU 发布 `/imu`
-
-### 4.2 IMU 噪声模型
-- [ ] 配置真实噪声参数（陀螺仪、加速度计偏置）
-- [ ] 验证噪声在 `/imu` 数据中可见
-
-### 4.3 VINS-Fusion 接入
-- [ ] 用相机 + IMU Topic 启动 VINS-Fusion
-- [ ] 验证 VINS 发布 `/vins_estimator/odometry`
-- [ ] 对比 VINS 轨迹 vs 真值 P3D
-
-### 4.4 LocalizationManager
-- [ ] 支持多定位源：Cartographer、VINS、Ground Truth
-- [ ] 发布统一 `/localization_pose`
-- [ ] 通过参数或 Service 运行时切换
-- [ ] 切换单元测试
-
-### 4.5 定位对比
-- [ ] 同一路径采集 GT、Cartographer、VINS 轨迹
-- [ ] 计算各方法 ATE（绝对轨迹误差）
-- [ ] 生成对比图
-
-**第四周目标：** 定量对比不同定位方法对建图和探索的影响。
+### PR12 VINS-Fusion 接入
+| Risk: ★★ | DoD: VINS / Cartographer / GT 可切换定位源 |
+|---|---|
+| ⬜ ground_robot.urdf 加 RGB 相机 + IMU（噪声） | |
+| ⬜ LocalizationManager：多源切换 | |
+| ⬜ ATE 对比实验 | |
 
 ---
 
-## 第五周：优化与实验
+## 每周 Exit Criteria
 
-### 5.1 Frontier 评分优化
-- [ ] 调参：距离、信息、面积、失败次数权重
-- [ ] A/B 测试不同评分策略
-- [ ] 指标：总探索时间、覆盖率增速、失败率
+### Week 1（已完成 ✅）
+- [x] Demo 能启动
+- [x] Mission FSM 正常切换
+- [x] 无模块直接 publish `/cmd_vel`（全部通过 MotionController）
+- [x] EventBus 工作
+- [x] 所有测试通过
 
-### 5.2 Recovery 策略优化
-- [ ] 对比恢复策略：纯后退、纯旋转、组合
-- [ ] 指标：恢复成功率和时间开销
-- [ ] 优化恢复参数（后退距离、旋转角度）
+### Week 2
+- [ ] CostmapManager 四层可独立查询
+- [ ] Planner/Controller 通过抽象接口调用
+- [ ] 机器人能从 A 点可靠导航到 B 点
 
-### 5.3 参数调优
-- [ ] 网格搜索/手动调优：inflation_radius、goal_tolerance、超时时间
-- [ ] DWA 参数：v_samples、w_samples、alpha/beta/gamma
-- [ ] 探索参数：min_cluster_size、blacklist_duration
+### Week 3
+- [ ] 机器人自主完成迷宫探索建图
+- [ ] Recovery 在卡住时自动触发
+- [ ] Coverage 后台独立统计
 
-### 5.4 实验数据采集
-- [ ] 每种配置跑 10 次完整探索
-- [ ] 记录：coverage_vs_time、path_length、planning_time、recovery_count
-- [ ] 导出 CSV 到 `~/catkin_ws/experiments/`
+### Week 4
+- [ ] VINS / Cartographer / GT 可切换
+- [ ] ATE 对比数据产出
 
-### 5.5 论文图表
-- [ ] 覆盖率随时间变化图（对比不同配置）
-- [ ] 轨迹叠加在地图上的俯视图
-- [ ] 规划时间直方图
-- [ ] Recovery 事件时间线
-- [ ] 定位误差对比图（Cartographer vs VINS vs GT）
-
-**第五周目标：** 完整实验数据集 + 发表级图表。
+### Week 5
+- [ ] 10 次完整探索实验数据
+- [ ] 论文级图表
