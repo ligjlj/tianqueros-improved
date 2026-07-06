@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5 — 12-PR 绞杀者重构完成: VINS-Fusion 接入 + Week 4 Exit Criteria (2026-07-06)
+
+- PR12: ground_robot.urdf 增加 RGB 相机 + IMU（带噪声模型）
+- PR12: LocalizationManager 多源定位切换（VINS-Fusion / Cartographer / Ground Truth）
+- PR12: ATE 对比实验（VINS vs Cartographer vs GT）
+- ROADMAP: 12-PR 绞杀者重构全部完成，Week 1-4 Exit Criteria 全部达成
+- Week 5 剩余: 10 次完整探索实验 + 论文级图表
+
 ## v0.4 — Week 2 Complete: Costmap + Interfaces + Navigation + Recovery (2026-07-06)
 
 - warehouse_costmap: RawCostmap + InflatedCostmap (4 tests)

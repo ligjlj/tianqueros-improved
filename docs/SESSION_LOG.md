@@ -3,20 +3,30 @@
 ## 时间线
 
 ```
-Phase 0-2  (7/4)   GridMap + A* + DWA     ✅ 58 tests
-Phase 3-5  (7/4)   PathTracker + FSM v1   ✅
-Phase 6-8  (7/5 AM) Exploration + Demo     ⚠️ demo 不稳定
-Debug     (7/5 AM) 根因分析 + 修复           4个工程问题
-Design    (7/5 PM) 架构讨论 → ADR           8条决策
-PR1       (7/5 PM) MotionController        ✅ 完成
-PR2       (7/6 AM) MissionManager          ✅ 完成
+Phase 0-2  (7/4)     GridMap + A* + DWA           ✅ 58 tests
+Phase 3-5  (7/4)     PathTracker + FSM v1         ✅
+Phase 6-8  (7/5 AM)  Exploration + Demo           ⚠️ demo 不稳定
+Debug      (7/5 AM)  根因分析 + 修复              4个工程问题
+Design     (7/5 PM)  架构讨论 → ADR               8条决策
+PR1        (7/5 PM)  MotionController             ✅ 完成
+PR2        (7/6 AM)  MissionManager               ✅ 完成
+PR3        (7/6 AM)  EventBus                     ✅ 完成
+PR4        (7/6 AM)  CostmapManager               ✅ 完成
+PR5        (7/6 AM)  PlannerInterface             ✅ 完成
+PR6        (7/6 AM)  ControllerInterface          ✅ 完成
+PR7        (7/6 PM)  NavigationManager            ✅ 完成
+PR8        (7/6 PM)  RecoveryManager              ✅ 完成
+PR9        (7/6 PM)  CoverageMonitor              ✅ 完成
+PR10       (7/6 PM)  GoalManager 重构             ✅ 完成
+PR11       (7/6 PM)  FrontierDetector 重构        ✅ 完成
+PR12       (7/6 PM)  VINS-Fusion 接入             ✅ 完成
 ```
 
 ## 分支状态
 
 ```
 main          — 基线 (58 tests, demo runnable)
-refactor-v2   — 重构分支 (PR1 + PR2 done)
+refactor-v2   — 重构分支 (12-PR 全部完成)
 ```
 
 ## 调试记录 (7/5 AM)
@@ -49,16 +59,16 @@ Demo 跑不起来，发现 4 个根因：
 |---|---|---|
 | PR1 | MotionController 接管 `/cmd_vel` | ✅ |
 | PR2 | MissionManager 接管启动流程 | ✅ |
-| PR3 | EventBus / Event 定义 | ⬜ |
-| PR4 | CostmapManager | ⬜ |
-| PR5 | PlannerInterface | ⬜ |
-| PR6 | ControllerInterface | ⬜ |
-| PR7 | NavigationManager | ⬜ |
-| PR8 | RecoveryManager | ⬜ |
-| PR9 | CoverageMonitor 后台化 | ⬜ |
-| PR10 | GoalManager 重构 | ⬜ |
-| PR11 | FrontierDetector 重构 | ⬜ |
-| PR12 | 接入 VINS-Fusion | ⬜ |
+| PR3 | EventBus / Event 定义 | ✅ |
+| PR4 | CostmapManager | ✅ |
+| PR5 | PlannerInterface | ✅ |
+| PR6 | ControllerInterface | ✅ |
+| PR7 | NavigationManager | ✅ |
+| PR8 | RecoveryManager | ✅ |
+| PR9 | CoverageMonitor 后台化 | ✅ |
+| PR10 | GoalManager 重构 | ✅ |
+| PR11 | FrontierDetector 重构 | ✅ |
+| PR12 | 接入 VINS-Fusion | ✅ |
 
 ## 开发原则
 
