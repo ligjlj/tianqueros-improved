@@ -1,97 +1,106 @@
-# Warehouse Autonomous Exploration Framework — Architecture
+# 仓库自主探索框架 — 系统架构
 
-## 1. System Overview
+## 1. 系统总览
 
 ```
-                        Mission Manager
+                     MissionManager（任务管理器）
                               │
            ┌──────────────────┼──────────────────┐
            ▼                  ▼                  ▼
-    Localization         Exploration          Diagnostics
+    Localization          Exploration          Diagnostics
+    （定位层）            （探索层）            （诊断层）
            │                  │                  │
            ▼                  ▼                  ▼
-         Pose          Frontier / Goal      Resource Monitor
+         Pose           Frontier / Goal      Resource Monitor
+        （位姿）         （前沿/目标）         （资源监控）
            │                  │             Coverage Monitor
-           │                  │
+           │                  │             （覆盖率监控）
            └──────────┬───────┘
                       ▼
-              Navigation Manager
+              NavigationManager
+              （导航管理器）
                       │
            ┌──────────┴──────────┐
            ▼                     ▼
-    Global Planner          Local Planner
-    (A* Interface)          (DWA Interface)
+    GlobalPlanner           LocalPlanner
+    （全局规划器）           （局部规划器）
+    (A* 接口)               (DWA 接口)
            │                     │
            └──────────┬──────────┘
                       ▼
-              Motion Controller
+              MotionController
+              （运动控制器）
                       │
                    cmd_vel
 ```
 
-## 2. Layer Responsibilities
+## 2. 各层职责
 
-### Layer 0 — Mission Manager (`warehouse_mission`)
-Lifecycle FSM. Does NOT know about frontiers, paths, or cmd_vel.
+### 第 0 层 — MissionManager（`warehouse_mission`）
 
-| Responsibility | Detail |
+生命周期状态机。不知道 Frontier、Path 或 cmd_vel 的存在。
+
+| 职责 | 说明 |
 |---|---|
-| Lifecycle states | BOOT → WAIT_MAP → INITIAL_SCAN → LOCALIZATION_READY → EXPLORATION → SAVE_MAP → FINISHED |
-| Input | System health, localization status, exploration completion signal |
-| Output | Mission state (`/mission_state`), exploration enable flag |
+| 生命周期状态 | BOOT → WAIT_MAP → INITIAL_SCAN → EXPLORATION → FINISHED |
+| 输入 | 系统健康状态、定位状态、探索完成信号 |
+| 输出 | `/mission_state`、`/exploration_enable` |
 
-### Layer 1 — Exploration Manager (`warehouse_exploration`)
-Frontier detection, goal selection, exploration strategy. Does NOT control the robot.
+### 第 1 层 — ExplorationManager（`warehouse_exploration`）
 
-| Module | Responsibility |
+Frontier 检测、目标选择、探索策略。不控制机器人。
+
+| 模块 | 职责 |
 |---|---|
-| FrontierDetector | Find free cells adjacent to unknown |
-| FrontierClusterer | BFS cluster frontier cells |
-| GoalSelector | Weighted scoring: distance × info × size × fail_count |
-| ReachabilityChecker | BFS flood-fill; filter unreachable clusters |
-| GoalManager | Blacklist, fail count, retry cooldown |
+| FrontierDetector | 寻找与未知区域相邻的空闲格子 |
+| FrontierClusterer | BFS 连通分量聚类 |
+| GoalSelector | 加权评分：距离 × 信息增益 × 面积 × 失败次数 |
+| ReachabilityChecker | BFS 漫水填充；过滤不可达聚类 |
+| GoalManager | 黑名单、失败计数、重试冷却 |
 | ExplorationFSM | DETECT → SELECT → PLAN → FOLLOW → RECOVERY |
-| CoverageMonitor | Background 2Hz: map coverage %, independent of FSM |
+| CoverageMonitor | 后台 2Hz：地图覆盖率统计，独立于 FSM |
 
-Input:  `/map` (OccupancyGrid), `/tf` (robot pose)
-Output: `/exploration_goal` (PoseStamped), `/frontier_marker`, `/exploration_state`
+输入：`/map`（OccupancyGrid）、`/tf`（机器人位姿）
+输出：`/exploration_goal`（PoseStamped）、`/frontier_marker`、`/exploration_state`
 
-### Layer 2 — Navigation Manager (`warehouse_navigation`)
-Path planning and execution orchestration.
+### 第 2 层 — NavigationManager（`warehouse_navigation`）
 
-| Module | Responsibility |
+路径规划与执行编排。
+
+| 模块 | 职责 |
 |---|---|
-| CostmapManager | Three-layer costmap: Raw / Inflated / Dynamic |
-| GlobalPlanner | A* interface: map + start + goal → Path |
-| LocalPlanner | DWA interface: path + laser + odom → cmd_vel |
-| PathTracker | Pure Pursuit: global path → lookahead sub-goal |
-| RecoveryManager | Backup, rotate, re-plan on failure |
-| NavigationMonitor | Stuck detection, oscillation, timeout, progress |
+| CostmapManager | 四层代价地图：Raw / Planner / Frontier / Dynamic |
+| GlobalPlanner | A* 接口：地图 + 起点 + 目标 → 路径 |
+| LocalPlanner | DWA 接口：路径 + 激光 + 里程计 → cmd_vel |
+| PathTracker | Pure Pursuit：全局路径 → 预瞄子目标 |
+| RecoveryManager | 后退、旋转、重规划 |
+| NavigationMonitor | 卡住检测、震荡检测、超时、进度监控 |
 
-Input:  `/exploration_goal`, `/map`, `/odom`, `/scan`
-Output: `/cmd_vel`, `/global_path`, `/local_path`, `/nav_status`
+输入：`/exploration_goal`、`/map`、`/odom`、`/scan`
+输出：`/cmd_vel`、`/global_path`、`/local_path`、`/nav_status`
 
-### Layer 3 — Diagnostics (`warehouse_diagnostics`)
-Performance monitoring and logging. Read-only, never controls the robot.
+### 第 3 层 — Diagnostics（`warehouse_diagnostics`）
 
-| Module | Responsibility |
+性能监控与日志。只读，永远不控制机器人。
+
+| 模块 | 职责 |
 |---|---|
-| ResourceMonitor | CPU, tick time, map update latency |
-| CsvLogger | Structured CSV export for experiments |
-| Visualization | RViz markers for debugging |
+| ResourceMonitor | CPU、tick 耗时、地图更新延迟 |
+| CsvLogger | 结构化 CSV 导出，用于实验数据采集 |
+| Visualization | RViz Marker 调试可视化 |
 
-## 3. External Dependencies (NOT part of the framework)
+## 3. 外部依赖（不属于框架）
 
-| Component | Role | Interface |
+| 组件 | 角色 | 接口 |
 |---|---|---|
-| Cartographer / Hector / VINS | SLAM + localization | Publishes `/map`, `/tf` (map→odom) |
-| Gazebo | Simulation | Spawns robot, runs physics |
-| robot URDF/SDF | Robot model | Sensors (laser, IMU, camera), actuators |
+| Cartographer / Hector / VINS | 建图 + 定位 | 发布 `/map`、`/tf`（map→odom） |
+| Gazebo | 仿真 | 生成机器人、运行物理引擎 |
+| Robot URDF/SDF | 机器人模型 | 传感器（激光、IMU、相机）、执行器 |
 
-## 4. Invariants
+## 4. 不变量
 
-1. Only the Motion Controller publishes `/cmd_vel`.
-2. No module modifies Cartographer, A*, or DWA internals.
-3. All module communication is via ROS topics (no direct class calls across layers).
-4. All parameters come from YAML files; no hardcoded values.
-5. Every module has a corresponding unit test.
+1. 只有 MotionController 发布 `/cmd_vel`。
+2. 任何模块不得修改 Cartographer、A* 或 DWA 的内部实现。
+3. 所有模块间通信通过 ROS Topic（禁止跨层直接调用类）。
+4. 所有参数来自 YAML 文件；零硬编码。
+5. 每个模块都有对应的单元测试。

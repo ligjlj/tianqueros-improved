@@ -1,172 +1,172 @@
-# Warehouse Autonomous Exploration Framework — Roadmap
+# 仓库自主探索框架 — 开发路线图
 
-## Week 1: System Refactoring
+## 第一周：系统重构
 
-### 1.1 Package Structure
-- [ ] Create `warehouse_mission` package (CMakeLists, package.xml)
-- [ ] Create `warehouse_navigation` package
-- [ ] Create `warehouse_diagnostics` package
-- [ ] Move existing `warehouse_utils`, `warehouse_planner`, `warehouse_controller`, `warehouse_exploration` to new structure
-- [ ] Update all CMakeLists for inter-package dependencies
+### 1.1 包结构
+- [ ] 创建 `warehouse_mission` 包
+- [ ] 创建 `warehouse_navigation` 包
+- [ ] 创建 `warehouse_diagnostics` 包
+- [ ] 将现有包迁移到新结构
+- [ ] 更新所有 CMakeLists 的包间依赖
 
-### 1.2 Interface Definitions
-- [ ] Define all topic names and message types (per INTERFACES.md)
-- [ ] Create `warehouse_msgs` for custom messages (if needed)
-- [ ] Document each topic's publisher, subscribers, and rate
+### 1.2 接口定义
+- [ ] 定义所有 Topic 名称和消息类型（参照 INTERFACES.md）
+- [ ] 按需创建 `warehouse_msgs` 自定义消息
+- [ ] 文档化每个 Topic 的发布者、订阅者和频率
 
 ### 1.3 MissionManager
-- [ ] Implement MissionManager FSM: BOOT → WAIT_MAP → INITIAL_SCAN → EXPLORATION → FINISHED
-- [ ] MissionManager publishes `/mission_state` and `/exploration_enable`
-- [ ] Main loop uses `while(ros::ok()) { spinOnce; fsm.update(); rate.sleep(); }`
-- [ ] Wall-clock based timing (no sim_time dependency)
-- [ ] Unit tests for state transitions
+- [ ] 实现 FSM：BOOT → WAIT_MAP → INITIAL_SCAN → EXPLORATION → FINISHED
+- [ ] 发布 `/mission_state` 和 `/exploration_enable`
+- [ ] 主循环 `while(ros::ok()) { spinOnce; fsm.update(); rate.sleep(); }`
+- [ ] 基于系统时钟（不依赖 sim_time）
+- [ ] 状态转移单元测试
 
-### 1.4 Event Mechanism
-- [ ] Define event types: MAP_READY, SCAN_COMPLETE, EXPLORATION_DONE, ERROR
-- [ ] Event bus: publish/subscribe within process (no ROS topic overhead)
-- [ ] FSM transitions triggered by events, not polling
+### 1.4 事件机制
+- [ ] 定义事件类型：MAP_READY、SCAN_COMPLETE、EXPLORATION_DONE、ERROR
+- [ ] 事件总线：进程内发布/订阅（不走 ROS Topic，零开销）
+- [ ] FSM 由事件驱动转移，不轮询
 
-### 1.5 Diagnostics
-- [ ] Implement ResourceMonitor: CPU, tick time, map update latency
-- [ ] Implement CsvLogger in `warehouse_diagnostics`
-- [ ] Adaptive frequency: slow down when CPU > 80%
-- [ ] All modules log to CSV for experiment data collection
+### 1.5 诊断模块
+- [ ] 实现 ResourceMonitor：CPU、tick 耗时、地图更新延迟
+- [ ] 在 `warehouse_diagnostics` 中实现 CsvLogger
+- [ ] 自适应频率：CPU > 80% 时降速
+- [ ] 全模块输出 CSV 用于实验数据采集
 
-**Week 1 Goal:** System starts, enters all lifecycle states, rviz shows state transitions. No exploration yet.
+**第一周目标：** 系统能启动、进入各生命周期状态，rviz 显示状态转移。暂不探索。
 
 ---
 
-## Week 2: Navigation Refactoring
+## 第二周：导航重构
 
 ### 2.1 CostmapManager
-- [ ] Three-layer costmap: Raw / Inflated (0.3m) / Dynamic (laser)
-- [ ] `getCost(layer, x, y)` interface
-- [ ] ReachabilityChecker uses Layer 1 (Raw)
-- [ ] A* uses Layer 2 (Inflated)
-- [ ] DWA uses Layer 3 (Dynamic)
-- [ ] Unit tests for each layer
+- [ ] 四层代价地图：Raw / Inflated (0.3m) / Frontier / Dynamic (laser)
+- [ ] `getCost(layer, x, y)` 统一接口
+- [ ] ReachabilityChecker 使用 Raw 层
+- [ ] A* 使用 Planner 层
+- [ ] DWA 使用 Dynamic 层
+- [ ] 每层单元测试
 
 ### 2.2 NavigationManager
-- [ ] Orchestrates: receive goal → plan → execute → report
-- [ ] Does NOT publish cmd_vel (delegates to LocalPlanner)
-- [ ] Publishes `/nav_status` (IDLE / PLANNING / FOLLOWING / STUCK / RECOVERY)
+- [ ] 编排：接收目标 → 规划 → 执行 → 报告
+- [ ] 不发布 cmd_vel（委托给 LocalPlanner）
+- [ ] 发布 `/nav_status`（IDLE / PLANNING / FOLLOWING / STUCK / RECOVERY）
 
 ### 2.3 RecoveryManager
-- [ ] Recovery strategies: BACKUP, ROTATE, REPLAN, SKIP_GOAL
-- [ ] Triggered by NavigationMonitor
-- [ ] Recovery publishes cmd_vel during active recovery phase only
-- [ ] Unit tests for recovery transitions
+- [ ] 恢复策略：BACKUP、ROTATE、REPLAN、SKIP_GOAL
+- [ ] 由 NavigationMonitor 触发
+- [ ] Recovery 只在活跃恢复阶段发布 cmd_vel
+- [ ] 恢复转移单元测试
 
-### 2.4 Planner Interface
-- [ ] Abstract `GlobalPlanner` base class
-- [ ] A* implementation conforms to interface
+### 2.4 Planner 接口
+- [ ] 抽象 `GlobalPlanner` 基类
+- [ ] A* 实现遵循接口
 - [ ] `plan(map, start, goal) → Path`
-- [ ] RRT* can be added later without changing NavigationManager
+- [ ] 以后可加 RRT* 而不改 NavigationManager
 
-### 2.5 Controller Interface
-- [ ] Abstract `LocalPlanner` base class
-- [ ] DWA implementation conforms to interface
+### 2.5 Controller 接口
+- [ ] 抽象 `LocalPlanner` 基类
+- [ ] DWA 实现遵循接口
 - [ ] `computeVelocity(map, state, path) → (v, w)`
-- [ ] TEB/MPC can be added later
+- [ ] 以后可加 TEB/MPC
 
-**Week 2 Goal:** Robot reliably navigates from point A to point B using rviz "2D Nav Goal".
+**第二周目标：** 机器人能可靠地从 A 点导航到 B 点（rviz "2D Nav Goal"）。
 
 ---
 
-## Week 3: Autonomous Exploration
+## 第三周：自主探索
 
 ### 3.1 FrontierDetector
-- [ ] Scan OccupancyGrid O(N) for free cells adjacent to unknown
-- [ ] Output: list of frontier GridCells
-- [ ] Unit tests: empty map, full map, boundary cases
+- [ ] O(N) 扫描 OccupancyGrid，找自由格子邻接未知
+- [ ] 输出：Frontier GridCell 列表
+- [ ] 单元测试：空地图、全地图、边界情况
 
 ### 3.2 FrontierClusterer
-- [ ] BFS connected-components clustering (8-connectivity)
-- [ ] Output: clusters with center, size, bounding box
-- [ ] Unit tests: single cluster, multiple clusters, tiny clusters
+- [ ] BFS 连通分量聚类（8 邻域）
+- [ ] 输出：聚类（含中心、大小、包围盒）
+- [ ] 单元测试：单聚类、多聚类、小聚类
 
 ### 3.3 GoalManager
-- [ ] Track goal state: UNTRIED → TRIED → FAILED → BLACKLISTED
-- [ ] Blacklist with 60s cooldown, auto-expire
-- [ ] Deduplication by proximity (0.5m radius)
-- [ ] Unit tests: blacklist, expiry, dedup
+- [ ] 目标状态跟踪：未尝试 → 已尝试 → 失败 → 黑名单
+- [ ] 黑名单 60s 冷却，自动过期
+- [ ] 就近去重（0.5m 半径）
+- [ ] 单元测试：黑名单、过期、去重
 
 ### 3.4 ExplorationFSM
-- [ ] States: DETECT → SELECT → PLAN → FOLLOW → RECOVERY → UPDATE
-- [ ] Event-driven transitions (no while(true) polling)
-- [ ] Reachability filter: only score clusters BFS-connected to robot
-- [ ] GoalSelector: 4-dim weighted scoring with fail_count penalty
-- [ ] Unit tests: state transitions, timeout, retry
+- [ ] 状态：DETECT → SELECT → PLAN → FOLLOW → RECOVERY → UPDATE
+- [ ] 事件驱动转移（不轮询）
+- [ ] 可达性过滤：只评分与机器人 BFS 连通的聚类
+- [ ] GoalSelector：四维加权评分 + 失败次数惩罚
+- [ ] 单元测试：状态转移、超时、重试
 
 ### 3.5 CoverageMonitor
-- [ ] Background 2Hz thread, independent of FSM
-- [ ] Subscribes to `/map`, computes coverage %
-- [ ] Publishes `/coverage` (Float32)
-- [ ] Triggers FINISHED signal when coverage stagnates
+- [ ] 后台 2Hz 线程，独立于 FSM
+- [ ] 订阅 `/map`，计算覆盖率百分比
+- [ ] 发布 `/coverage`（Float32）
+- [ ] 覆盖率停滞时触发 FINISHED 信号
 
-**Week 3 Goal:** Robot autonomously explores and maps the maze without human intervention.
+**第三周目标：** 机器人无需人工干预，自主探索并完成迷宫建图。
 
 ---
 
-## Week 4: Visual-Inertial Fusion
+## 第四周：视觉惯性融合
 
-### 4.1 Gazebo Sensors
-- [ ] Add RGB camera to ground_robot.urdf
-- [ ] Add IMU with noise model to ground_robot.urdf
-- [ ] Verify camera publishes `/camera/image_raw`
-- [ ] Verify IMU publishes `/imu`
+### 4.1 Gazebo 传感器
+- [ ] 给 ground_robot.urdf 加 RGB 相机
+- [ ] 给 ground_robot.urdf 加 IMU（含噪声模型）
+- [ ] 验证相机发布 `/camera/image_raw`
+- [ ] 验证 IMU 发布 `/imu`
 
-### 4.2 IMU Noise Model
-- [ ] Configure realistic noise parameters (gyro, accel biases)
-- [ ] Verify noise is visible in `/imu` data
+### 4.2 IMU 噪声模型
+- [ ] 配置真实噪声参数（陀螺仪、加速度计偏置）
+- [ ] 验证噪声在 `/imu` 数据中可见
 
-### 4.3 VINS-Fusion Integration
-- [ ] Launch VINS-Fusion with camera + IMU topics
-- [ ] Verify VINS publishes `/vins_estimator/odometry`
-- [ ] Compare VINS trajectory vs ground truth P3D
+### 4.3 VINS-Fusion 接入
+- [ ] 用相机 + IMU Topic 启动 VINS-Fusion
+- [ ] 验证 VINS 发布 `/vins_estimator/odometry`
+- [ ] 对比 VINS 轨迹 vs 真值 P3D
 
 ### 4.4 LocalizationManager
-- [ ] Support multiple localization sources: Cartographer, VINS, Ground Truth
-- [ ] Publish unified `/localization_pose`
-- [ ] Runtime switching via parameter or service
-- [ ] Unit tests for source switching
+- [ ] 支持多定位源：Cartographer、VINS、Ground Truth
+- [ ] 发布统一 `/localization_pose`
+- [ ] 通过参数或 Service 运行时切换
+- [ ] 切换单元测试
 
-### 4.5 Localization Comparison
-- [ ] Collect GT, Cartographer, VINS trajectories on same path
-- [ ] Compute ATE (Absolute Trajectory Error) for each
-- [ ] Generate comparison plots
+### 4.5 定位对比
+- [ ] 同一路径采集 GT、Cartographer、VINS 轨迹
+- [ ] 计算各方法 ATE（绝对轨迹误差）
+- [ ] 生成对比图
 
-**Week 4 Goal:** Quantitative comparison of localization methods' impact on mapping and exploration.
+**第四周目标：** 定量对比不同定位方法对建图和探索的影响。
 
 ---
 
-## Week 5: Optimization & Experiments
+## 第五周：优化与实验
 
-### 5.1 Frontier Scoring Optimization
-- [ ] Tune weights: distance, information, size, fail_count
-- [ ] A/B test different scoring strategies
-- [ ] Measure: total exploration time, coverage speed, failure rate
+### 5.1 Frontier 评分优化
+- [ ] 调参：距离、信息、面积、失败次数权重
+- [ ] A/B 测试不同评分策略
+- [ ] 指标：总探索时间、覆盖率增速、失败率
 
-### 5.2 Recovery Strategy Optimization
-- [ ] Compare recovery strategies: backup-only, rotate-only, combined
-- [ ] Measure recovery success rate and time cost
-- [ ] Optimize recovery parameters (backup distance, rotate angle)
+### 5.2 Recovery 策略优化
+- [ ] 对比恢复策略：纯后退、纯旋转、组合
+- [ ] 指标：恢复成功率和时间开销
+- [ ] 优化恢复参数（后退距离、旋转角度）
 
-### 5.3 Parameter Tuning
-- [ ] Grid search or manual tuning: inflation_radius, goal_tolerance, timeouts
-- [ ] DWA parameters: v_samples, w_samples, alpha/beta/gamma
-- [ ] Exploration: min_cluster_size, blacklist_duration
+### 5.3 参数调优
+- [ ] 网格搜索/手动调优：inflation_radius、goal_tolerance、超时时间
+- [ ] DWA 参数：v_samples、w_samples、alpha/beta/gamma
+- [ ] 探索参数：min_cluster_size、blacklist_duration
 
-### 5.4 Experiment Data Collection
-- [ ] Run 10 full exploration trials per configuration
-- [ ] Log: coverage_vs_time, path_length, planning_time, recovery_count
-- [ ] Export CSV to `~/catkin_ws/experiments/`
+### 5.4 实验数据采集
+- [ ] 每种配置跑 10 次完整探索
+- [ ] 记录：coverage_vs_time、path_length、planning_time、recovery_count
+- [ ] 导出 CSV 到 `~/catkin_ws/experiments/`
 
-### 5.5 Paper Figures
-- [ ] Coverage over time plot (comparing configurations)
-- [ ] Trajectory overlay on map
-- [ ] Planning time histogram
-- [ ] Recovery event timeline
-- [ ] Localization error comparison (Cartographer vs VINS vs GT)
+### 5.5 论文图表
+- [ ] 覆盖率随时间变化图（对比不同配置）
+- [ ] 轨迹叠加在地图上的俯视图
+- [ ] 规划时间直方图
+- [ ] Recovery 事件时间线
+- [ ] 定位误差对比图（Cartographer vs VINS vs GT）
 
-**Week 5 Goal:** Complete experiment dataset and publication-quality figures.
+**第五周目标：** 完整实验数据集 + 发表级图表。
