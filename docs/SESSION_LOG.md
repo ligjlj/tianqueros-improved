@@ -67,3 +67,4 @@ Demo 跑不起来，发现 4 个根因：
 3. **一次只改一件事。** 不边重构边优化算法。
 4. **main 分支永不动。** 所有工作在 refactor-v2。
 5. **机器人永远通过 MotionController 运动。** 没有其他 cmd_vel 发布者。
+6. **每次 PR 提交前逐项核对 docs/：** ARCHITECTURE（层级正确）、INTERFACES（Topic 无冲突）、ADR（决策合规）、ROADMAP（勾掉已完成项）。

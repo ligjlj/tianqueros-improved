@@ -3,22 +3,23 @@
 ## 第一周：系统重构
 
 ### 1.1 包结构
-- [ ] 创建 `warehouse_mission` 包
+- [x] 创建 `warehouse_mission` 包
+- [x] 创建 `warehouse_motion` 包（MotionController）
 - [ ] 创建 `warehouse_navigation` 包
 - [ ] 创建 `warehouse_diagnostics` 包
 - [ ] 将现有包迁移到新结构
 - [ ] 更新所有 CMakeLists 的包间依赖
 
 ### 1.2 接口定义
-- [ ] 定义所有 Topic 名称和消息类型（参照 INTERFACES.md）
+- [x] 定义所有 Topic 名称和消息类型（参照 INTERFACES.md）
 - [ ] 按需创建 `warehouse_msgs` 自定义消息
-- [ ] 文档化每个 Topic 的发布者、订阅者和频率
+- [x] 文档化每个 Topic 的发布者、订阅者和频率
 
 ### 1.3 MissionManager
-- [ ] 实现 FSM：BOOT → WAIT_MAP → INITIAL_SCAN → EXPLORATION → FINISHED
-- [ ] 发布 `/mission_state` 和 `/exploration_enable`
-- [ ] 主循环 `while(ros::ok()) { spinOnce; fsm.update(); rate.sleep(); }`
-- [ ] 基于系统时钟（不依赖 sim_time）
+- [x] 实现 FSM：BOOT → WAIT_MAP → INITIAL_SCAN → EXPLORATION → FINISHED
+- [x] 发布 `/mission_state` 和 `/exploration_enable`
+- [x] 主循环 `while(ros::ok()) { spinOnce; fsm.update(); rate.sleep(); }`
+- [x] 基于系统时钟（不依赖 sim_time）
 - [ ] 状态转移单元测试
 
 ### 1.4 事件机制
