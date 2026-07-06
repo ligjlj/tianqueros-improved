@@ -46,6 +46,7 @@ SLAM: hector_mapping | Planning: A* + DWA | Exploration: FSM 自主探索
 | [INTERFACES.md](docs/INTERFACES.md) | Topic/Service 规格 |
 | [ADR.md](docs/ADR.md) | 架构决策记录 |
 | [CHANGELOG.md](docs/CHANGELOG.md) | 版本记录 |
+| [AGENTS.md](docs/AGENTS.md) | AI 多 Agent 协作规范 |
 | [SESSION_LOG.md](docs/SESSION_LOG.md) | 开发日志 |
 
 ## 开发规范
