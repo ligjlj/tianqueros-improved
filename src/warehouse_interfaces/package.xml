@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>warehouse_interfaces</name><version>0.1.0</version>
+  <description>Abstract plugin interfaces: GlobalPlanner, LocalPlanner (ADR-005).</description>
+  <maintainer email="ligjlj@example.com">ligjlj</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>warehouse_costmap</build_depend>
+  <exec_depend>warehouse_costmap</exec_depend>
+  <export><build_type>catkin</build_type></export>
+</package>

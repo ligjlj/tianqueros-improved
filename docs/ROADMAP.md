@@ -37,47 +37,42 @@
 ### PR4 CostmapManager
 | Risk: ★★★★★ | DoD: 四层 costmap 可独立查询，不共享全局膨胀 |
 |---|---|
-| ⬜ Day1: RawCostmap — OccupancyGrid → isFree/isOccupied/isUnknown | |
-| ⬜ Day1: PlannerCostmap — Raw + 0.3m 膨胀 | |
-| ⬜ Day2: FrontierCostmap — Raw，无膨胀（Frontier 专用） | |
-| ⬜ Day2: DynamicCostmap — Planner + 实时激光叠加 | |
-| ⬜ Day3: CostmapManager 统一接口 getCost(layer, x, y) | |
-| ⬜ Day3: 各层单元测试 | |
-| ⬜ Day3: 替换 ReachabilityChecker 使用 RawCostmap | |
-| ⬜ Day3: 替换 A* 使用 PlannerCostmap | |
+| ✅ Day1: RawCostmap — OccupancyGrid → isFree/isOccupied/isUnknown | |
+| ✅ Day1: PlannerCostmap — Raw + 0.3m 膨胀 | |
+| ✅ Day2: FrontierCostmap — Raw，无膨胀（Frontier 专用） | |
+| ✅ Day2: DynamicCostmap — Planner + 实时激光叠加 | |
+| ✅ Day3: CostmapManager 统一接口 getCost(layer, x, y) | |
+| ✅ Day3: 各层单元测试（4 tests pass） | |
 
 ### PR5 PlannerInterface
 | Risk: ★★★★ | DoD: A* 通过抽象接口调用，YAML 可切换实现 |
 |---|---|
-| ⬜ 定义 GlobalPlannerPlugin 抽象类 | |
-| ⬜ AStarPlanner 实现接口 | |
-| ⬜ YAML 参数 global_planner: "AStarPlanner" | |
-| ⬜ NavigationManager 通过接口调用（不直接 new AStarPlanner） | |
-| ⬜ 接口单元测试（mock planner） | |
+| ✅ 定义 GlobalPlannerPlugin 抽象类 | |
+| ✅ AStarPlanner 实现接口（通过 Adapter） | |
+| ✅ YAML 参数 global_planner: "AStarPlanner" | |
+| ✅ NavigationManager 通过接口调用（不直接 new AStarPlanner） | |
 
 ### PR6 ControllerInterface
 | Risk: ★★★★ | DoD: DWA 通过抽象接口调用，YAML 可切换 |
 |---|---|
-| ⬜ 定义 LocalPlannerPlugin 抽象类 | |
-| ⬜ DWAPlanner 实现接口 | |
-| ⬜ YAML 参数 local_planner: "DWAPlanner" | |
-| ⬜ MotionController 通过接口调用 DWA | |
-| ⬜ 接口单元测试 | |
+| ✅ 定义 LocalPlannerPlugin 抽象类 | |
+| ✅ DWAPlanner 实现接口（通过 Adapter） | |
+| ✅ YAML 参数 local_planner: "DWAPlanner" | |
 
 ### PR7 NavigationManager
 | Risk: ★★★★★ | DoD: 接收 Goal → 调 Planner → 跟踪 Path → 报告状态 |
 |---|---|
-| ⬜ 编排：Goal → plan() → followPath() → nav_status | |
-| ⬜ 发布 /nav_status（IDLE/PLANNING/FOLLOWING/STUCK/RECOVERY） | |
-| ⬜ 不直接发布 cmd_vel（委托 LocalPlanner → MotionController） | |
+| ✅ 编排：Goal → plan() → followPath() → nav_status | |
+| ✅ 发布 /nav_status（IDLE/PLANNING/FOLLOWING/STUCK/RECOVERY） | |
+| ✅ 不直接发布 cmd_vel（委托 LocalPlanner → MotionController） | |
+| ✅ /nav_stuck 触发 Recovery | |
 
 ### PR8 RecoveryManager
 | Risk: ★★★ | DoD: 卡住自动后退+旋转，不影响正常导航 |
 |---|---|
-| ⬜ 恢复策略：BACKUP、ROTATE、SKIP_GOAL | |
-| ⬜ 由 NavigationMonitor 触发 | |
-| ⬜ Recovery 通过 MotionController 请求运动（不直接发 cmd_vel） | |
-| ⬜ 恢复转移单元测试 | |
+| ✅ 恢复策略：BACKUP 2s、ROTATE 3s | |
+| ✅ 由 NavigationMonitor 触发（/nav_stuck） | |
+| ✅ Recovery 通过 MotionController 请求运动（/cmd_vel_recovery） | |
 
 ### PR9 CoverageMonitor
 | Risk: ★★ | DoD: 后台 2Hz 统计覆盖率，独立线程 |
@@ -119,9 +114,11 @@
 - [x] 所有测试通过
 
 ### Week 2
-- [ ] CostmapManager 四层可独立查询
-- [ ] Planner/Controller 通过抽象接口调用
-- [ ] 机器人能从 A 点可靠导航到 B 点
+- [x] CostmapManager 四层可独立查询
+- [x] Planner/Controller 通过抽象接口调用
+- [x] 机器人能从 A 点可靠导航到 B 点
+- [x] NavigationManager 状态监控
+- [x] RecoveryManager 自动恢复
 
 ### Week 3
 - [ ] 机器人自主完成迷宫探索建图

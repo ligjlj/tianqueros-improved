@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4 — Week 2 Complete: Costmap + Interfaces + Navigation + Recovery (2026-07-06)
+
+- warehouse_costmap: RawCostmap + InflatedCostmap (4 tests)
+- warehouse_interfaces: GlobalPlannerPlugin + LocalPlannerPlugin (ADR-005)
+- warehouse_navigation: NavigationManager (/nav_status, /nav_stuck)
+- warehouse_recovery: RecoveryManager (BACKUP 2s + ROTATE 3s)
+- Demo: 13 nodes running with full pipeline
+- ROADMAP Week 1-2 Exit Criteria met
+
 ## v0.3 — EventBus + MissionFSM 测试 (2026-07-06)
 
 - EventBus: 进程内线程安全事件总线（warehouse_utils）

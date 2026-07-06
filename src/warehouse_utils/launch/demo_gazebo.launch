@@ -76,7 +76,11 @@
     <arg name="cmd_vel_topic" value="/cmd_vel_recovery"/>
   </include>
 
-  <!-- ===== 7. RViz ===== -->
+  <!-- ===== 8. NavigationMonitor + Recovery ===== -->
+  <node name="navigation_monitor" pkg="warehouse_navigation" type="navigation_node" output="screen"/>
+  <node name="recovery" pkg="warehouse_recovery" type="recovery_node" output="screen"/>
+
+  <!-- ===== 9. RViz ===== -->
   <node name="rviz" pkg="rviz" type="rviz"
         args="-d $(find warehouse_utils)/config/demo.rviz"
         required="false"/>
