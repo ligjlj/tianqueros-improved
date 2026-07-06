@@ -1,96 +1,51 @@
-# 仓库自主探索框架 — 开发日志
+# 开发日志
 
-## 时间线
+## 2026-07-06 — v0.7: 五层架构重构
 
-```
-Phase 0-2  (7/4)     GridMap + A* + DWA           ✅ 58 tests
-Phase 3-5  (7/4)     PathTracker + FSM v1         ✅
-Phase 6-8  (7/5 AM)  Exploration + Demo           ⚠️ demo 不稳定
-Debug      (7/5 AM)  根因分析 + 修复              4个工程问题
-Design     (7/5 PM)  架构讨论 → ADR               8条决策
-PR1        (7/5 PM)  MotionController             ✅ 完成
-PR2        (7/6 AM)  MissionManager               ✅ 完成
-PR3        (7/6 AM)  EventBus                     ✅ 完成
-PR4        (7/6 AM)  CostmapManager               ✅ 完成
-PR5        (7/6 AM)  PlannerInterface             ✅ 完成
-PR6        (7/6 AM)  ControllerInterface          ✅ 完成
-PR7        (7/6 PM)  NavigationManager            ✅ 完成
-PR8        (7/6 PM)  RecoveryManager              ✅ 完成
-PR9        (7/6 PM)  CoverageMonitor              ✅ 完成
-PR10       (7/6 PM)  GoalManager 重构             ✅ 完成
-PR11       (7/6 PM)  FrontierDetector 重构        ✅ 完成
-PR12       (7/6 PM)  VINS-Fusion 接入             ✅ 完成
-```
+**架构决策：** 从"自研所有算法"转变为"构建自主探索框架"。算法是插件，不是核心。
 
-## 分支状态
+**五层：**
+1. Mission Layer — 要不要探索
+2. Exploration Layer — 去哪
+3. Navigation Layer — 怎么导航（Adapter 模式）
+4. Navigation Backend — ROS Navigation Stack
+5. Localization Layer — 在哪
 
-```
-main          — 基线 (58 tests, demo runnable)
-refactor-v2   — 重构分支 (12-PR 全部完成)
-```
+**关键决策：**
+- ADR-009: 算法层使用 ROS Navigation Stack（navfn + DWA + costmap_2d）
+- 自研 A*/DWA 保留双轨，config 切换
+- MotionController 保留为速度仲裁器
+- EventBus 保留为跨模块通信
+- Recovery 委托给 move_base，Mission 处理失败
 
-## 调试记录 (7/5 AM)
+## 2026-07-06 — v0.6: ROS Navigation 接入
+- MoveBaseAdapter 封装 action client
+- NavigationManager 双轨运行
+- move_base + navfn + DWA + costmap_2d 配置完成
+- Demo 14节点运行，move_base 产出规划
 
-Demo 跑不起来，发现 4 个根因：
+## 2026-07-06 — v0.5: PR12 + 三级测试
+- Kanban Multi-Agent 验证：4/4 tasks
+- 三级测试体系：Unit(72) + Integration + System + Regression(8)
+- URDF 相机+IMU
 
-| # | 症状 | 根因 | 修复 |
-|---|---|---|---|
-| 1 | FSM 永远卡在同一个状态 | `ros::Timer` 依赖 `/clock`；Gazebo 加载迷宫导致时钟停顿 | 改用 `ros::WallTimer` |
-| 2 | CPU 跑满，FSM 无响应 | Coverage O(2048²) 每 0.1s tick 计算一次 | 缓存覆盖度，每 2s 算一次 |
-| 3 | A* 永远找不到路径 | `inflation_radius=1.0m`（20 格）堵死所有窄通道 | 减小到 0.3m |
-| 4 | INITIAL_SCAN 后机器人一直转 | 只发一次 stop，diff_drive 保持上一帧指令 | 退出后持续发 stop 1 秒 |
+## 2026-07-06 — v0.0~v0.4
+- v0.4: Costmap + Interfaces + Navigation + Recovery
+- v0.3: EventBus + MissionFSM
+- v0.2: MissionManager
+- v0.1: MotionController
+- v0.0: Baseline (GridMap + A* + DWA, 58 tests)
 
-## 架构决策 (7/5 PM)
+## 调试记录
 
-| ADR | 决策 |
-|---|---|
-| 001 | 单一 `/cmd_vel` 发布者：MotionController |
-| 002 | 四层 Costmap：Raw → Planner / Frontier → Dynamic |
-| 003 | 事件驱动 FSM：发事件，不调规划器 |
-| 004 | Worker 模式：后台任务进线程池 |
-| 005 | Plugin 接口：A*/DWA 通过 YAML 切换 |
-| 006 | Blackboard 模式：共享状态，模块间不 import |
-| 007 | 三大分离：Mission ⊥ Planner ⊥ Frontier ⊥ Controller ⊥ Map |
-| 008 | 目录：`warehouse_nav/` 下 11 个子模块 |
+### sim_time 问题（贯穿始终）
+- ros::Timer 在 sim_time 下不稳定 → 全部改为 WallTimer/WallTime
+- MotionController 未改 WallTimer → 修复后 /cmd_vel 链路正常
+- rostopic echo 在 sim_time 下超时 → 改用直接日志观察
 
-## 12-PR 绞杀者重构计划
-
-| PR | 内容 | 状态 |
-|---|---|---|
-| PR1 | MotionController 接管 `/cmd_vel` | ✅ |
-| PR2 | MissionManager 接管启动流程 | ✅ |
-| PR3 | EventBus / Event 定义 | ✅ |
-| PR4 | CostmapManager | ✅ |
-| PR5 | PlannerInterface | ✅ |
-| PR6 | ControllerInterface | ✅ |
-| PR7 | NavigationManager | ✅ |
-| PR8 | RecoveryManager | ✅ |
-| PR9 | CoverageMonitor 后台化 | ✅ |
-| PR10 | GoalManager 重构 | ✅ |
-| PR11 | FrontierDetector 重构 | ✅ |
-| PR12 | 接入 VINS-Fusion | ✅ |
-
-## 开发原则
-
-1. **只用绞杀者模式。** 新层包裹旧代码，永远不重写。
-2. **每个 PR 后 Demo 必须能跑。** 坏了就回滚。
-3. **一次只改一件事。** 不边重构边优化算法。
-4. **main 分支永不动。** 所有工作在 refactor-v2。
-5. **机器人永远通过 MotionController 运动。** 没有其他 cmd_vel 发布者。
-6. **每次 PR 提交前逐项核对 docs/：** ARCHITECTURE（层级正确）、INTERFACES（Topic 无冲突）、ADR（决策合规）、ROADMAP（勾掉已完成项）。
-
-## 每日开发流程
-
-```
-打开 ROADMAP → 选一个 Task（不是 PR）→ 编码 → 单元测试
-→ Demo验证 → Commit → 勾掉 Task → 更新 SESSION_LOG
-```
-
-**原子单位是 Task，不是 PR。** PR 是一组 Task 全部完成后自然形成的 Git 提交单位。
-
-**开发时只看一个文档：ROADMAP。**
-- README：给别人看，不指导开发
-- ARCHITECTURE：架构调整时才看
-- INTERFACES：写通信代码时查
-- ROADMAP：每天开发唯一入口
-- SESSION_LOG：每天结束时记录
+### 其他修复
+- coverage 每 tick 计算 O(2048²) → 缓存每 2s 一次
+- inflation_radius=1.0m 堵死迷宫 → 减为 0.3m
+- warehouse.world SDF 缺少 name 属性 → 修复后 Gazebo 正常渲染
+- ReachabilityChecker BFS 过严 → 暂时跳过，A* 自行验证
+- GoalSelector 重复选紧邻目标 → 加 min_goal_distance=2.0m
