@@ -16,8 +16,8 @@ protected:
     cfg.weight_distance     = 1.0;
     cfg.weight_information  = 2.0;
     cfg.weight_size         = 1.5;
-    cfg.weight_reachability = 3.0;
     cfg.min_cluster_size    = 5;
+    cfg.min_goal_distance_m = 0.0;   // Disable min distance for small test grids
     selector_ = GoalSelector(cfg);
 
     GridMap::Config gcfg;

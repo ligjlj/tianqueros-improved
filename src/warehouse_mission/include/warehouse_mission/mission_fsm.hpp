@@ -36,6 +36,7 @@ public:
   /// External events.
   void onMapReady();
   void onExplorationDone();
+  void onYawUpdate(double current_yaw);  ///< Feed current odom yaw for INITIAL_SCAN verification.
 
   // Accessors.
   State state() const { return state_; }
@@ -58,6 +59,9 @@ private:
   bool map_ready_          = false;
   bool exploration_done_   = false;
   ros::WallTime scan_start_{0, 0};
+  double last_scan_yaw_    = 0.0;    ///< Previous odom yaw for delta integration
+  double scan_accum_yaw_   = 0.0;    ///< Accumulated absolute yaw change during INITIAL_SCAN
+  bool   scan_yaw_valid_   = false;  ///< True once first odom yaw received
 };
 
 }  // namespace warehouse_mission

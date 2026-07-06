@@ -27,9 +27,11 @@ GoalSelector::ScoredGoal GoalSelector::select(
     const double dx = goal.x - robot_pos.x;
     const double dy = goal.y - robot_pos.y;
     const double dist = std::sqrt(dx*dx + dy*dy);
-    const double dist_score = (dist > 1e-6)
-      ? -config_.weight_distance * dist   // negative: farther = worse
-      : 0.0;
+
+    // Skip goals too close to robot (avoid trivial loop).
+    if (dist < config_.min_goal_distance_m) continue;
+
+    const double dist_score = -config_.weight_distance * dist;
 
     // ── Information score ─────────────────────────────────
     const double info_score = config_.weight_information

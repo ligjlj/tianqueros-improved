@@ -1,5 +1,37 @@
 # 开发日志
 
+## 2026-07-06 — Demo 验证 + wall_h1 删除
+
+**Demo 运行验证:**
+- 14 节点全部在线，MissionFSM 全链路走通: BOOT→WAIT_MAP→INITIAL_SCAN→EXPLORATION（3.2s）
+- INITIAL_SCAN 偏航角验证正常：3s 完成 360° 旋转
+- /cmd_vel 唯一发布者 = motion_controller（ADR-001 ✓）
+- hector_mapping 正常发布 /map
+
+**已知问题:**
+- move_base TF extrapolation 错误（sim_time + hector 的 odom→map TF 同步问题）
+- 机器人静止时 move_base 无法规划路径
+
+**修复:**
+- warehouse.world: 删除 wall_h1（y=-3 横墙），机器人 spawn 位置向南畅通
+
+## 2026-07-06 — v0.8: 稳定性提升 (sim_time→WallTime, INITIAL_SCAN 旋转确认)
+
+**稳定性提升 (4项全部完成):**
+1. sim_time → WallTime 全部模块替换:
+   - exploration_fsm.hpp/cpp: 所有 ros::Time → ros::WallTime（NavigationMonitor, MapProgressMonitor, FSM 成员变量）
+   - dwa_controller_node.cpp: ros::Timer → ros::WallTimer
+   - mission_fsm.hpp/cpp 已经在用 WallTime
+2. move_base TF transform_tolerance: 2.0 → 0.3
+3. INITIAL_SCAN 旋转确认: MissionFSM 现在基于实际 odom 偏航角累积（≥315°）+ 最短 8s，14s 安全超时
+4. Exploration 端到端自动化测试脚本: tests/exploration_e2e.py
+
+**额外修复:**
+- test_goal.cpp 预存问题: weight_reachability 不存在 → 移除; min_goal_distance_m=2.0 在小网格跳过全部目标 → 测试中设为 0.0
+- 单元测试: 37/37 全部通过（warehouse_utils 19 + warehouse_exploration 18）
+
+**编译验证:** warehouse_mission, warehouse_exploration, warehouse_controller 三包零 error
+
 ## 2026-07-06 — v0.7: 五层架构重构
 
 **架构决策：** 从"自研所有算法"转变为"构建自主探索框架"。算法是插件，不是核心。

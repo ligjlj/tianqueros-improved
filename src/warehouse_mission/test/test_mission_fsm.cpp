@@ -37,6 +37,8 @@ TEST_F(MissionFSMTest, MapReadyToScan) {
 TEST_F(MissionFSMTest, ScanToExplore) {
   ros::WallDuration(1.1).sleep(); fsm_.update();
   fsm_.onMapReady(); fsm_.update();
+  // Simulate 360° rotation via incremental yaw updates (avoid wrap-around issue).
+  for (double y = 0.5; y <= 6.0; y += 0.5) { fsm_.onYawUpdate(y); }
   ros::WallDuration(8.1).sleep(); fsm_.update();
   EXPECT_EQ(fsm_.state(), MissionFSM::EXPLORATION);
 }
@@ -44,6 +46,7 @@ TEST_F(MissionFSMTest, ScanToExplore) {
 TEST_F(MissionFSMTest, ExploreStays) {
   ros::WallDuration(1.1).sleep(); fsm_.update();
   fsm_.onMapReady(); fsm_.update();
+  for (double y = 0.5; y <= 6.0; y += 0.5) { fsm_.onYawUpdate(y); }
   ros::WallDuration(8.1).sleep(); fsm_.update();
   ASSERT_EQ(fsm_.state(), MissionFSM::EXPLORATION);
   for (int i = 0; i < 10; ++i) { fsm_.update(); ros::WallDuration(0.01).sleep(); }
@@ -53,6 +56,7 @@ TEST_F(MissionFSMTest, ExploreStays) {
 TEST_F(MissionFSMTest, DoneToFinish) {
   ros::WallDuration(1.1).sleep(); fsm_.update();
   fsm_.onMapReady(); fsm_.update();
+  for (double y = 0.5; y <= 6.0; y += 0.5) { fsm_.onYawUpdate(y); }
   ros::WallDuration(8.1).sleep(); fsm_.update();
   ASSERT_EQ(fsm_.state(), MissionFSM::EXPLORATION);
   fsm_.onExplorationDone(); fsm_.update();
@@ -73,6 +77,7 @@ TEST_F(MissionFSMTest, RotateOnOff) {
   ros::WallDuration(1.1).sleep(); fsm_.update();
   fsm_.onMapReady(); fsm_.update();
   EXPECT_TRUE(r);   // rotating during scan
+  for (double y = 0.5; y <= 6.0; y += 0.5) { fsm_.onYawUpdate(y); }
   ros::WallDuration(8.1).sleep(); fsm_.update();
   EXPECT_FALSE(r);  // stopped after scan
 }

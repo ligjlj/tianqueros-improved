@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.8 — 稳定性提升 (2026-07-06)
+
+- sim_time → WallTime 全模块替换 (exploration FSM + DWA controller)
+- move_base transform_tolerance: 2.0 → 0.3
+- INITIAL_SCAN 旋转确认: 基于 odom 偏航角 (≥315°) + 14s 超时安全网
+- E2E 自动化测试脚本: tests/exploration_e2e.py
+- 修复 test_goal.cpp 预存失败 (3→4 tests pass)
+
+## v0.7 — 五层架构重构 (2026-07-06)
+
+**架构决策：** 从"自研所有算法"转变为"构建自主探索框架"。
+
+- 五层架构: Mission → Exploration → Navigation → Backend → Localization
+- ADR-009: 算法层使用 ROS Navigation Stack（navfn + DWA + costmap_2d）
+- 自研 A*/DWA 保留，双轨切换
+- MotionController 保留为速度仲裁器
+- EventBus 保留为跨模块通信
+
 ## v0.6 — ROS Navigation Stack Adapter (2026-07-06)
 
 - MoveBaseAdapter: 封装 move_base action client

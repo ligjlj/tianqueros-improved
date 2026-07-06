@@ -41,15 +41,15 @@ public:
   void reset();
 
 private:
-  Config  config_;
-  ros::Time stuck_start_;
+  Config      config_;
+  ros::WallTime stuck_start_{0, 0};
   bool    stuck_       = false;
   bool    oscillating_ = false;
   bool    off_path_    = false;
 
   // Oscillation detection: track angular velocity sign flips.
   struct VelSample {
-    ros::Time t;
+    ros::WallTime t;
     double    wz;
   };
   std::deque<VelSample> vel_history_;
@@ -70,7 +70,7 @@ public:
 private:
   Config config_;
   double last_coverage_ = 0.0;
-  ros::Time last_progress_time_;
+  ros::WallTime last_progress_time_{0, 0};
   bool stagnant_ = false;
 };
 
@@ -128,9 +128,9 @@ private:
 
   Config config_;
   State  state_ = State::DETECT_FRONTIER;
-  ros::Time state_enter_time_;
-  ros::WallTime state_enter_wall_;
-  ros::Time goal_start_time_;
+  ros::WallTime state_enter_time_{0, 0};
+  ros::WallTime state_enter_wall_{0, 0};
+  ros::WallTime goal_start_time_{0, 0};
   int     retry_count_       = 0;
   int     coverage_tick_     = 0;
   double  cached_coverage_   = 0.0;
@@ -142,7 +142,7 @@ private:
 
   enum class RecoveryPhase { BACKUP, ROTATE, DONE };
   RecoveryPhase recovery_phase_ = RecoveryPhase::DONE;
-  ros::Time      recovery_phase_start_;
+  ros::WallTime  recovery_phase_start_{0, 0};
 
   NavigationMonitor  nav_monitor_;
   GoalManager        goal_manager_;

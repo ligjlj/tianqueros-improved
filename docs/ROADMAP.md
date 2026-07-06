@@ -34,10 +34,10 @@ Mission → Exploration → Navigation → Adapter → ROS Navigation Stack
 ## TODO ⬜
 
 ### 稳定性提升
-- [ ] sim_time → WallTime 全部模块替换
-- [ ] move_base TF transform_tolerance 调优
-- [ ] INITIAL_SCAN 旋转确认
-- [ ] Exploration 端到端自动化测试
+- [x] sim_time → WallTime 全部模块替换
+- [x] move_base TF transform_tolerance 调优
+- [x] INITIAL_SCAN 旋转确认
+- [x] Exploration 端到端自动化测试
 
 ### 实验数据采集 (Week 5)
 - [ ] 10 次完整探索运行
@@ -63,7 +63,7 @@ Mission → Exploration → Navigation → Adapter → ROS Navigation Stack
 - Frontier + GoalSelector + GoalManager
 - 72 tests, 14-node Demo
 
-### Week 4 🔄 算法迁移
+### Week 4 ✅ 算法迁移 + 稳定性
 - ROS Navigation Stack 接入
 - Demo 端到端稳定性
 

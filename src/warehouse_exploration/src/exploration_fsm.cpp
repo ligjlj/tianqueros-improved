@@ -11,7 +11,7 @@ namespace warehouse_exploration {
 
 void NavigationMonitor::update(double vx, double vy, double wz) {
   const double speed = std::sqrt(vx*vx + vy*vy);
-  const auto now = ros::Time::now();
+  const auto now = ros::WallTime::now();
 
   // Stuck detection.
   if (speed < config_.stuck_velocity_threshold) {
@@ -19,7 +19,7 @@ void NavigationMonitor::update(double vx, double vy, double wz) {
     else if ((now - stuck_start_).toSec() > config_.stuck_duration_s)
       stuck_ = true;
   } else {
-    stuck_start_ = ros::Time(0);
+    stuck_start_ = ros::WallTime(0, 0);
     stuck_ = false;
   }
 
@@ -45,7 +45,7 @@ void NavigationMonitor::update(double vx, double vy, double wz) {
 }
 
 void NavigationMonitor::reset() {
-  stuck_start_ = ros::Time(0);
+  stuck_start_ = ros::WallTime(0, 0);
   stuck_ = false;
   oscillating_ = false;
   off_path_ = false;
@@ -59,22 +59,22 @@ void NavigationMonitor::reset() {
 void MapProgressMonitor::update(double c) {
   if (c > last_coverage_ + config_.stagnation_coverage_delta) {
     last_coverage_ = c;
-    last_progress_time_ = ros::Time::now();
+    last_progress_time_ = ros::WallTime::now();
     stagnant_ = false;
   } else if (!last_progress_time_.isZero() &&
-             (ros::Time::now() - last_progress_time_).toSec()
+             (ros::WallTime::now() - last_progress_time_).toSec()
               > config_.stagnation_timeout_s) {
     stagnant_ = true;
   }
   if (last_progress_time_.isZero()) {
-    last_progress_time_ = ros::Time::now();
+    last_progress_time_ = ros::WallTime::now();
     last_coverage_ = c;
   }
 }
 
 void MapProgressMonitor::reset() {
   last_coverage_ = 0.0;
-  last_progress_time_ = ros::Time::now();
+  last_progress_time_ = ros::WallTime::now();
   stagnant_ = false;
 }
 
@@ -99,7 +99,7 @@ void ExplorationFSM::transitionTo(State s) {
   ROS_INFO_STREAM("FSM: " << kStateNames[static_cast<int>(state_)]
                   << " → " << kStateNames[static_cast<int>(s)]);
   state_ = s;
-  state_enter_time_ = ros::Time::now();
+  state_enter_time_ = ros::WallTime::now();
   state_enter_wall_ = ros::WallTime::now();
 }
 
@@ -164,24 +164,13 @@ void ExplorationFSM::handleDetectFrontier(TickResult& r,
 
   last_clusters_ = FrontierClusterer().cluster(cells);
 
-  // ── REACHABILITY FILTER: drop unreachable clusters ──────
-  std::vector<GridCell> robot_cell = {grid.worldToGrid(robot_pos.x, robot_pos.y)};
-  std::vector<std::vector<GridCell>> cluster_cells;
-  for (const auto& cl : last_clusters_)
-    cluster_cells.push_back(cl.cells);
-
-  reachable_indices_ = reach_checker_.filterReachable(grid, robot_cell, cluster_cells);
-
-  if (reachable_indices_.empty()) {
-    ROS_WARN("No reachable frontiers. Retrying detection...");
-    if (map_monitor_.isStagnant())
-      transitionTo(State::FINISHED);
-    return;
-  }
+  // All clusters are candidates — A* will verify actual reachability.
+  reachable_indices_.clear();
+  for (size_t i = 0; i < last_clusters_.size(); ++i)
+    reachable_indices_.push_back(static_cast<int>(i));
 
   r.frontier_count = static_cast<int>(reachable_indices_.size());
-  ROS_INFO_STREAM("Frontiers: " << last_clusters_.size()
-                  << " total, " << reachable_indices_.size() << " reachable");
+  ROS_INFO_STREAM("Frontiers: " << last_clusters_.size() << " total");
 
   transitionTo(State::SELECT_GOAL);
 }
@@ -270,7 +259,7 @@ void ExplorationFSM::handleFollowPath(TickResult& r,
   }
 
   // Timeout.
-  double elapsed = (ros::Time::now() - goal_start_time_).toSec();
+  double elapsed = (ros::WallTime::now() - goal_start_time_).toSec();
   if (elapsed > config_.goal_timeout_s) {
     retry_count_++;
     if (retry_count_ >= config_.max_retries) {
@@ -294,18 +283,18 @@ void ExplorationFSM::handleFollowPath(TickResult& r,
 void ExplorationFSM::handleRecovery(TickResult& r) {
   if (recovery_phase_ == RecoveryPhase::DONE) {
     recovery_phase_ = RecoveryPhase::BACKUP;
-    recovery_phase_start_ = ros::Time::now();
+    recovery_phase_start_ = ros::WallTime::now();
     ROS_INFO("Recovery: BACKUP 2s...");
   }
 
-  double elapsed = (ros::Time::now() - recovery_phase_start_).toSec();
+  double elapsed = (ros::WallTime::now() - recovery_phase_start_).toSec();
 
   switch (recovery_phase_) {
     case RecoveryPhase::BACKUP:
       r.goal.x = -1.0;
       if (elapsed > 2.0) {
         recovery_phase_ = RecoveryPhase::ROTATE;
-        recovery_phase_start_ = ros::Time::now();
+        recovery_phase_start_ = ros::WallTime::now();
         ROS_INFO("Recovery: ROTATE 3s...");
       }
       break;
@@ -326,7 +315,7 @@ void ExplorationFSM::handleRecovery(TickResult& r) {
 // ── External notifications ────────────────────────────────────
 void ExplorationFSM::onPathReceived() {
   if (state_ == State::PLAN_PATH) {
-    goal_start_time_ = ros::Time::now();
+    goal_start_time_ = ros::WallTime::now();
     transitionTo(State::FOLLOW_PATH);
   }
 }

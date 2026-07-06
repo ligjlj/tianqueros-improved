@@ -21,7 +21,8 @@ public:
     double weight_size         = 1.5;
     double weight_fail         = 5.0;   ///< Penalty per previous failure
     int    min_cluster_size    = 5;
-    int    safe_placement_radius = 10;  ///< Cells to search for safe goal cell
+    double min_goal_distance_m = 2.0;   ///< Skip goals closer than this
+    int    safe_placement_radius = 10;
   };
 
   struct ScoredGoal {

@@ -61,7 +61,7 @@ public:
     traj_pub_       = nh_.advertise<visualization_msgs::Marker>("/dwa_traj", 1);
 
     // ── Control loop timer (10 Hz) ────────────────────────
-    timer_ = nh_.createTimer(ros::Duration(0.1),
+    timer_ = nh_.createWallTimer(ros::WallDuration(0.1),
                              &DWAControllerNode::controlLoop, this);
 
     ROS_INFO("DWA Controller Node ready.");
@@ -97,7 +97,7 @@ private:
     has_odom_ = true;
   }
 
-  void controlLoop(const ros::TimerEvent&) {
+  void controlLoop(const ros::WallTimerEvent&) {
     if (!has_map_ || !has_odom_ || !global_path_) return;
 
     // Check goal reached.
@@ -187,7 +187,7 @@ private:
   ros::NodeHandle nh_;
   ros::Subscriber map_sub_, path_sub_, odom_sub_;
   ros::Publisher  cmd_pub_, local_path_pub_, traj_pub_;
-  ros::Timer      timer_;
+  ros::WallTimer timer_;
 
   // ── Core ────────────────────────────────────────────────
   warehouse_utils::GridMap          grid_;
