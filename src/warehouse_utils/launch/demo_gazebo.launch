@@ -66,12 +66,10 @@
   <!-- ===== 5. MotionController (ADR-001: sole /cmd_vel) ===== -->
   <include file="$(find warehouse_motion)/launch/motion.launch"/>
 
-  <!-- ===== 6. Warehouse Navigation Stack ===== -->
-  <!-- DWA → /cmd_vel_nav (priority 2), Exploration → /cmd_vel_recovery (priority 3) -->
-  <include file="$(find warehouse_planner)/launch/astar.launch"/>
-  <include file="$(find warehouse_controller)/launch/dwa.launch">
-    <arg name="cmd_vel_topic" value="/cmd_vel_nav"/>
-  </include>
+  <!-- ===== 6. Navigation: ROS Navigation Stack (move_base) ===== -->
+  <!-- move_base replaces A* + DWA. cmd_vel → /cmd_vel_nav → MotionController -->
+  <include file="$(find warehouse_navigation)/launch/navigation.launch"/>
+  <node name="navigation_manager" pkg="warehouse_navigation" type="navigation_node" output="screen"/>
   <include file="$(find warehouse_exploration)/launch/exploration.launch">
     <arg name="cmd_vel_topic" value="/cmd_vel_recovery"/>
   </include>

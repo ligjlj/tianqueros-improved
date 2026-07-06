@@ -1,0 +1,11 @@
+<launch>
+  <arg name="cmd_vel_topic" default="/cmd_vel_nav"/>
+  <node pkg="move_base" type="move_base" name="move_base" output="screen">
+    <remap from="cmd_vel" to="$(arg cmd_vel_topic)"/>
+    <rosparam file="$(find warehouse_navigation)/config/costmap_common.yaml" command="load" ns="global_costmap"/>
+    <rosparam file="$(find warehouse_navigation)/config/costmap_common.yaml" command="load" ns="local_costmap"/>
+    <rosparam file="$(find warehouse_navigation)/config/local_costmap.yaml" command="load"/>
+    <rosparam file="$(find warehouse_navigation)/config/global_costmap.yaml" command="load"/>
+    <rosparam file="$(find warehouse_navigation)/config/base_local_planner.yaml" command="load"/>
+  </node>
+</launch>

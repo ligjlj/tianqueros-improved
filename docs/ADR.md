@@ -252,3 +252,32 @@ warehouse_nav/
 | 006 | 2026-07-05 | 已采纳 | Blackboard 模式 |
 | 007 | 2026-07-05 | 已采纳 | 三大分离原则 |
 | 008 | 2026-07-05 | 已采纳 | 目录结构 |
+
+## ADR-009：ROS Navigation Stack 算法复用
+
+**状态：** 已采纳
+
+**背景：** 自研 A*、DWA、Costmap 在 sim_time + Gazebo 环境下频繁遇到 TF 同步、Costmap 膨胀、路径规划失败等工程问题。这些问题 ROS Navigation Stack (navfn + dwa_local_planner + costmap_2d) 已在社区验证十几年。
+
+**决策：** 算法层（Planner、Controller、Costmap）使用 ROS Navigation Stack。自研代码保留，通过 NavManager 双轨切换。
+
+```
+NavigationManager
+        │
+   planner_type: "move_base" | "self"
+        │
+ ┌──────┴────────┐
+ │               │
+MoveBaseAdapter  SelfPlanner+SelfController
+ │
+ move_base (ROS)
+ │
+ navfn + DWA + costmap_2d
+```
+
+**后果：**
+- 自研 MissionManager、ExplorationFSM、MotionController 全部保留。
+- move_base 通过 MoveBaseAdapter 封装，上层无感知。
+- /cmd_vel 仍由 MotionController 统一出口。
+- 自研 A*/DWA 保留在 config 切换，随时可回退。
+- 论文实验可对比 move_base vs 自研算法。
