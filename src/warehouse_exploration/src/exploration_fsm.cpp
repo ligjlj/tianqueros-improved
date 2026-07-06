@@ -1,4 +1,5 @@
 #include "warehouse_exploration/exploration_fsm.hpp"
+#include "warehouse_exploration/goal_manager.hpp"
 #include <ros/console.h>
 #include <cmath>
 
@@ -52,78 +53,7 @@ void NavigationMonitor::reset() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Goal Manager
-// ═══════════════════════════════════════════════════════════════
-
-int GoalManager::FindRecord(const WorldPoint& g) {
-  for (size_t i = 0; i < records_.size(); ++i) {
-    double dx = records_[i].goal.x - g.x, dy = records_[i].goal.y - g.y;
-    if (std::sqrt(dx*dx + dy*dy) < kDedupRadius) return static_cast<int>(i);
-  }
-  return -1;
-}
-
-void GoalManager::addCandidate(const WorldPoint& g) {
-  if (FindRecord(g) >= 0) return;
-  records_.push_back({g, 0, false, ros::Time(0), ros::Time(0)});
-}
-
-void GoalManager::markFailed(const WorldPoint& g) {
-  int idx = FindRecord(g);
-  if (idx < 0) { addCandidate(g); idx = static_cast<int>(records_.size()) - 1; }
-  auto& r = records_[idx];
-  r.fail_count++;
-  r.last_attempt = ros::Time::now();
-  if (r.fail_count >= kBlacklistThreshold) {
-    r.blacklisted = true;
-    r.blacklist_until = ros::Time::now() + ros::Duration(60.0);
-    ROS_WARN_STREAM("Goal (" << g.x << "," << g.y
-                    << ") blacklisted (" << r.fail_count << " failures).");
-  }
-}
-
-void GoalManager::markCompleted(const WorldPoint& g) {
-  int idx = FindRecord(g);
-  if (idx < 0) return;
-  records_[idx].fail_count = 0;
-  records_[idx].blacklisted = false;
-}
-
-bool GoalManager::isBlacklisted(const WorldPoint& g, double duration_s) {
-  int idx = FindRecord(g);
-  if (idx < 0) return false;
-  auto& r = records_[idx];
-  // Expired blacklist?
-  if (r.blacklisted && ros::Time::now() > r.blacklist_until) {
-    r.blacklisted = false;
-    r.fail_count = 0;  // Reset after cooldown.
-    return false;
-  }
-  return r.blacklisted;
-}
-
-int GoalManager::getFailCount(const WorldPoint& g) const {
-  int idx = const_cast<GoalManager*>(this)->FindRecord(g);
-  return (idx >= 0) ? records_[idx].fail_count : 0;
-}
-
-std::unordered_map<int, int> GoalManager::getFailMap(
-    const std::vector<FrontierCluster>& clusters,
-    const GridMap& grid) const {
-
-  std::unordered_map<int, int> m;
-  for (size_t i = 0; i < clusters.size(); ++i) {
-    WorldPoint g = grid.gridToWorld(clusters[i].center.row, clusters[i].center.col);
-    int fc = getFailCount(g);
-    if (fc > 0) m[static_cast<int>(i)] = fc;
-  }
-  return m;
-}
-
-void GoalManager::clear() { records_.clear(); }
-
-// ═══════════════════════════════════════════════════════════════
-// Map Progress Monitor
+// FSM
 // ═══════════════════════════════════════════════════════════════
 
 void MapProgressMonitor::update(double c) {

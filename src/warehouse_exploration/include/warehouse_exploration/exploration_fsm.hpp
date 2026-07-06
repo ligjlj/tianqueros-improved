@@ -11,6 +11,7 @@
 #include "warehouse_exploration/frontier_cluster.hpp"
 #include "warehouse_exploration/goal_selector.hpp"
 #include "warehouse_exploration/reachability_checker.hpp"
+#include "warehouse_exploration/goal_manager.hpp"
 
 namespace warehouse_exploration {
 
@@ -52,44 +53,6 @@ private:
     double    wz;
   };
   std::deque<VelSample> vel_history_;
-};
-
-// ═══════════════════════════════════════════════════════════════
-// Goal Manager — blacklist with expiry, fail counts
-// ═══════════════════════════════════════════════════════════════
-class GoalManager {
-public:
-  struct GoalRecord {
-    WorldPoint goal;
-    int        fail_count  = 0;
-    bool       blacklisted = false;
-    ros::Time  blacklist_until;
-    ros::Time  last_attempt;
-  };
-
-  void addCandidate(const WorldPoint& g);
-  void markFailed(const WorldPoint& g);
-  void markCompleted(const WorldPoint& g);
-
-  /// Check if a goal is blacklisted (expired blacklists auto-clear).
-  bool isBlacklisted(const WorldPoint& g, double blacklist_duration_s = 60.0);
-
-  /// Get fail count for a goal.
-  int getFailCount(const WorldPoint& g) const;
-
-  /// Get fail counts indexed by cluster index for GoalSelector.
-  std::unordered_map<int, int> getFailMap(
-      const std::vector<FrontierCluster>& clusters,
-      const GridMap& grid) const;
-
-  void clear();
-
-private:
-  static constexpr double kDedupRadius = 0.5;
-  static constexpr int    kBlacklistThreshold = 3;
-
-  std::vector<GoalRecord> records_;
-  int FindRecord(const WorldPoint& g);
 };
 
 // ═══════════════════════════════════════════════════════════════

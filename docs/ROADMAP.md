@@ -77,23 +77,23 @@
 ### PR9 CoverageMonitor
 | Risk: ★★ | DoD: 后台 2Hz 统计覆盖率，独立线程 |
 |---|---|
-| ⬜ CoverageWorker 类（Job Queue 模式） | |
-| ⬜ 发布 /coverage (Float32) | |
-| ⬜ 不再在 FSM tick 里算覆盖率 | |
+| ✅ CoverageWorker 类（Job Queue 模式） | |
+| ✅ 发布 /coverage (Float32) | |
+| ✅ 不再在 FSM tick 里算覆盖率 | |
 
 ### PR10 GoalManager 重构
 | Risk: ★★★ | DoD: 黑名单自动过期，评分包含失败次数 |
 |---|---|
-| ⬜ Goal 状态：UNTRIED→TRIED→FAILED→BLACKLISTED | |
-| ⬜ 黑名单 60s 自动过期 | |
-| ⬜ 单元测试：黑名单、过期、去重 | |
+| ✅ Goal 状态：UNTRIED→TRIED→FAILED→BLACKLISTED | |
+| ✅ 黑名单 60s 自动过期 | |
+| ✅ 单元测试：黑名单、过期、去重 | |
 
 ### PR11 FrontierDetector 重构
 | Risk: ★★★ | DoD: Frontier 使用 FrontierCostmap（无膨胀） |
 |---|---|
-| ⬜ FrontierDetector 读 FrontierCostmap | |
-| ⬜ 不再受全局膨胀影响 | |
-| ⬜ 单元测试更新 | |
+| ✅ FrontierDetector 读 FrontierCostmap | |
+| ✅ 不再受全局膨胀影响 | |
+| ✅ 单元测试更新 | |
 
 ### PR12 VINS-Fusion 接入
 | Risk: ★★ | DoD: VINS / Cartographer / GT 可切换定位源 |
@@ -121,9 +121,10 @@
 - [x] RecoveryManager 自动恢复
 
 ### Week 3
-- [ ] 机器人自主完成迷宫探索建图
-- [ ] Recovery 在卡住时自动触发
-- [ ] Coverage 后台独立统计
+- [x] 机器人自主完成迷宫探索建图
+- [x] Recovery 在卡住时自动触发
+- [x] Coverage 后台独立统计
+- [x] GoalManager 状态机 + 黑名单
 
 ### Week 4
 - [ ] VINS / Cartographer / GT 可切换
