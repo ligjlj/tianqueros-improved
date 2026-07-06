@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="enclosed_warehouse">
+    <include><uri>model://sun</uri></include>
+
+    <model name="floor">
+      <static>true</static>
+      <link name="floor_link">
+        <collision>
+          <geometry><box><size>20 20 0.1</size></box></geometry>
+        </collision>
+        <visual>
+          <geometry><box><size>20 20 0.1</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Outer walls — fully enclosed 20x20 warehouse -->
+    <model name="wall_north"><static>true</static><pose>0 10 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>20 0.2 3</size></box></geometry></collision>
+      <visual><geometry><box><size>20 0.2 3</size></box></geometry>
+      <material><ambient>0.8 0.3 0.3 1</ambient></material></visual></link></model>
+
+    <model name="wall_south"><static>true</static><pose>0 -10 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>20 0.2 3</size></box></geometry></collision>
+      <visual><geometry><box><size>20 0.2 3</size></box></geometry>
+      <material><ambient>0.8 0.3 0.3 1</ambient></material></visual></link></model>
+
+    <model name="wall_east"><static>true</static><pose>10 0 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.2 20 3</size></box></geometry></collision>
+      <visual><geometry><box><size>0.2 20 3</size></box></geometry>
+      <material><ambient>0.8 0.3 0.3 1</ambient></material></visual></link></model>
+
+    <model name="wall_west"><static>true</static><pose>-10 0 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.2 20 3</size></box></geometry></collision>
+      <visual><geometry><box><size>0.2 20 3</size></box></geometry>
+      <material><ambient>0.8 0.3 0.3 1</ambient></material></visual></link></model>
+
+    <!-- Internal walls — create rooms and corridors -->
+    <model name="wall_h1"><static>true</static><pose>0 -3 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>14 0.2 3</size></box></geometry></collision>
+      <visual><geometry><box><size>14 0.2 3</size></box></geometry>
+      <material><ambient>0.5 0.5 0.5 1</ambient></material></visual></link></model>
+
+    <model name="wall_h2"><static>true</static><pose>4 3 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>12 0.2 3</size></box></geometry></collision>
+      <visual><geometry><box><size>12 0.2 3</size></box></geometry>
+      <material><ambient>0.5 0.5 0.5 1</ambient></material></visual></link></model>
+
+    <model name="wall_h3"><static>true</static><pose>-4 3 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>6 0.2 3</size></box></geometry></collision>
+      <visual><geometry><box><size>6 0.2 3</size></box></geometry>
+      <material><ambient>0.5 0.5 0.5 1</ambient></material></visual></link></model>
+
+    <model name="wall_v1"><static>true</static><pose>3 0 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.2 6 3</size></box></geometry></collision>
+      <visual><geometry><box><size>0.2 6 3</size></box></geometry>
+      <material><ambient>0.5 0.5 0.5 1</ambient></material></visual></link></model>
+
+    <model name="wall_v2"><static>true</static><pose>-3 0 1.5 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.2 8 3</size></box></geometry></collision>
+      <visual><geometry><box><size>0.2 8 3</size></box></geometry>
+      <material><ambient>0.5 0.5 0.5 1</ambient></material></visual></link></model>
+
+    <!-- Obstacles: pillars / pallets -->
+    <model name="pillar1"><static>true</static><pose>5 5 0.75 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.5 0.5 1.5</size></box></geometry></collision>
+      <visual><geometry><box><size>0.5 0.5 1.5</size></box></geometry>
+      <material><ambient>0.8 0.6 0.2 1</ambient></material></visual></link></model>
+
+    <model name="pillar2"><static>true</static><pose>-5 5 0.75 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.5 0.5 1.5</size></box></geometry></collision>
+      <visual><geometry><box><size>0.5 0.5 1.5</size></box></geometry>
+      <material><ambient>0.8 0.6 0.2 1</ambient></material></visual></link></model>
+
+    <model name="pillar3"><static>true</static><pose>5 -5 0.75 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.5 0.5 1.5</size></box></geometry></collision>
+      <visual><geometry><box><size>0.5 0.5 1.5</size></box></geometry>
+      <material><ambient>0.8 0.6 0.2 1</ambient></material></visual></link></model>
+
+    <model name="pillar4"><static>true</static><pose>-5 -5 0.75 0 0 0</pose>
+      <link name="link"><collision><geometry><box><size>0.5 0.5 1.5</size></box></geometry></collision>
+      <visual><geometry><box><size>0.5 0.5 1.5</size></box></geometry>
+      <material><ambient>0.8 0.6 0.2 1</ambient></material></visual></link></model>
+
+  </world>
+</sdf>

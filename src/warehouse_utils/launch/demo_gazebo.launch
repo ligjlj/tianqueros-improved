@@ -23,7 +23,7 @@
        value="/opt/ros/noetic/lib:$(optenv GAZEBO_PLUGIN_PATH)"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="/home/ligjlj/Desktop/shu-sit/repos/TianqueROS/Experiments/drone_dev/worlds/maze.world"/>
+    <arg name="world_name" value="$(find simple_drone)/worlds/warehouse.world"/>
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>
@@ -79,6 +79,7 @@
   <!-- ===== 8. NavigationMonitor + Recovery ===== -->
   <node name="navigation_monitor" pkg="warehouse_navigation" type="navigation_node" output="screen"/>
   <node name="recovery" pkg="warehouse_recovery" type="recovery_node" output="screen"/>
+  <node name="coverage_monitor" pkg="warehouse_exploration" type="coverage_monitor" output="screen"/>
 
   <!-- ===== 9. RViz ===== -->
   <node name="rviz" pkg="rviz" type="rviz"
