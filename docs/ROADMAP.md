@@ -20,7 +20,7 @@
 - [x] 发布 `/mission_state` 和 `/exploration_enable`
 - [x] 主循环 `while(ros::ok()) { spinOnce; fsm.update(); rate.sleep(); }`
 - [x] 基于系统时钟（不依赖 sim_time）
-- [ ] 状态转移单元测试
+- [x] 状态转移单元测试
 
 ### 1.4 事件机制
 - [x] 定义事件类型：MAP_READY、SCAN_COMPLETE、EXPLORATION_DONE、ERROR

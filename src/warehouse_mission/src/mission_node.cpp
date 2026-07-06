@@ -1,10 +1,9 @@
 /// @file mission_node.cpp
-/// MissionManager v2 — event-driven lifecycle FSM (ADR-003).
+/// Thin ROS wrapper for MissionFSM.
 ///
-/// States: BOOT → WAIT_MAP → INITIAL_SCAN → EXPLORATION → FINISHED
-///
-/// Transitions are triggered by EventBus events, NOT by polling.
-/// Uses while(ros::ok()) + spinOnce + rate.sleep() main loop.
+/// Subscribes: /map
+/// Publishes:  /mission_state, /exploration_enable, /cmd_vel_recovery
+/// FSM logic:  MissionFSM (testable in isolation)
 
 #include <ros/ros.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -13,119 +12,69 @@
 #include <geometry_msgs/Twist.h>
 
 #include "warehouse_utils/event_bus.hpp"
+#include "warehouse_mission/mission_fsm.hpp"
 
 using warehouse_utils::EventBus;
 using warehouse_utils::EventType;
+using warehouse_mission::MissionFSM;
 
-class MissionManager {
+class MissionNode {
 public:
-  MissionManager() : nh_("~") {
-    map_sub_ = nh_.subscribe("/map", 1, &MissionManager::mapCb, this);
+  MissionNode() : nh_("~") {
+    map_sub_ = nh_.subscribe("/map", 1, &MissionNode::mapCb, this);
+
     state_pub_  = nh_.advertise<std_msgs::String>("/mission_state", 1);
     enable_pub_ = nh_.advertise<std_msgs::Bool>("/exploration_enable", 1, true);
     cmd_pub_    = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_recovery", 1);
 
-    // ── Subscribe to events ───────────────────────────────
-    auto& bus = EventBus::instance();
-    bus.subscribe(EventType::MAP_READY, [this](EventType) {
-      if (state_ == WAIT_MAP) {
-        transition("INITIAL_SCAN");
-        state_ = INITIAL_SCAN;
-        scan_start_ = ros::Time::now();
-      }
+    // Wire FSM callbacks.
+    fsm_.onStateChange([this](const std::string& name) {
+      std_msgs::String msg;
+      msg.data = name;
+      state_pub_.publish(msg);
     });
-    bus.subscribe(EventType::EXPLORATION_DONE, [this](EventType) {
-      if (state_ == EXPLORATION) {
-        transition("FINISHED");
-        state_ = FINISHED;
-      }
+    fsm_.onEnableChange([this](bool enable) {
+      std_msgs::Bool msg;
+      msg.data = enable;
+      enable_pub_.publish(msg);
+      if (enable) EventBus::instance().emit(EventType::EXPLORATION_ENABLED);
+    });
+    fsm_.onNeedRotate([this](bool active) {
+      geometry_msgs::Twist cmd;
+      if (active) cmd.angular.z = 0.8;
+      cmd_pub_.publish(cmd);
     });
 
-    transition("BOOT");
-    ROS_INFO("MissionManager ready (event-driven). State: BOOT");
+    ROS_INFO("Mission Node ready.");
   }
 
   void spin() {
     ros::Rate rate(20);
     while (ros::ok()) {
       ros::spinOnce();
-      update();
+      fsm_.update();
       rate.sleep();
     }
   }
 
 private:
-  enum State { BOOT, WAIT_MAP, INITIAL_SCAN, EXPLORATION, FINISHED };
-  State state_ = BOOT;
-  ros::Time scan_start_;
-  bool has_map_ = false;
-
-  void transition(const std::string& name) {
-    std_msgs::String msg;
-    msg.data = name;
-    state_pub_.publish(msg);
-    ROS_INFO_STREAM("Mission: " << name);
-  }
-
   void mapCb(const nav_msgs::OccupancyGrid::ConstPtr& msg) {
-    if (!has_map_ && msg->info.width > 0) {
-      has_map_ = true;
+    if (msg->info.width > 0) {
+      fsm_.onMapReady();
       EventBus::instance().emit(EventType::MAP_READY);
-    }
-  }
-
-  void update() {
-    double elapsed = (ros::Time::now() - scan_start_).toSec();
-
-    switch (state_) {
-      case BOOT:
-        if (elapsed > 1.0 && scan_start_.isZero()) {
-          // Fake: BOOT → WAIT_MAP after 1s
-          // (MAP_READY event will trigger WAIT_MAP → INITIAL_SCAN)
-          transition("WAIT_MAP");
-          state_ = WAIT_MAP;
-          scan_start_ = ros::Time::now();
-        }
-        break;
-
-      case WAIT_MAP:
-        // Waiting for MAP_READY event (handled in callback).
-        break;
-
-      case INITIAL_SCAN:
-        if (elapsed < 8.0) {
-          geometry_msgs::Twist cmd;
-          cmd.angular.z = 0.8;
-          cmd_pub_.publish(cmd);
-        } else {
-          geometry_msgs::Twist stop;
-          cmd_pub_.publish(stop);
-          std_msgs::Bool enable;
-          enable.data = true;
-          enable_pub_.publish(enable);
-          EventBus::instance().emit(EventType::EXPLORATION_ENABLED);
-          transition("EXPLORATION");
-          state_ = EXPLORATION;
-        }
-        break;
-
-      case EXPLORATION:
-        // Waiting for EXPLORATION_DONE event.
-        break;
-
-      case FINISHED:
-        break;
+      map_sub_.shutdown();  // Only need first map.
     }
   }
 
   ros::NodeHandle nh_;
   ros::Subscriber map_sub_;
   ros::Publisher  state_pub_, enable_pub_, cmd_pub_;
+  MissionFSM fsm_;
 };
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "mission_node");
-  MissionManager mgr;
-  mgr.spin();
+  MissionNode node;
+  node.spin();
   return 0;
 }
