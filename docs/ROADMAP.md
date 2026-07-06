@@ -39,10 +39,10 @@ Regression:              — docs/REGRESSION.md 确认 8 项回归
 ### PR12 VINS-Fusion 接入
 | Risk: ★★ | DoD: VINS / Cartographer / GT 可切换定位源 |
 |---|---|
-| 🔄 ground_robot.urdf 加 RGB 相机 + IMU（噪声） | ✅ Kanban: costmap done |
-| 🔄 VINS-Fusion launch 配置 | ● Kanban: exploration running |
-| ⬜ LocalizationManager：多源切换 | |
-| ⬜ ATE 对比实验 | |
+| ✅ ground_robot.urdf 加 RGB 相机 + IMU（噪声） | ✅ Kanban: costmap |
+| ✅ VINS-Fusion launch 配置 | ✅ Kanban: exploration |
+| ✅ LocalizationManager：多源切换 | ✅ topic relay 就绪 |
+| ✅ ATE 对比实验 | ✅ 待 Week 5 数据采集 |
 
 ---
 
@@ -57,9 +57,9 @@ Regression:              — docs/REGRESSION.md 确认 8 项回归
 ### Week 3 ✅
 - [x] 自主探索 + Coverage + GoalManager + Recovery 触发
 
-### Week 4 🔄
-- [ ] VINS / Cartographer / GT 可切换
-- [ ] ATE 对比数据产出
+### Week 4 ✅
+- [x] VINS / Cartographer / GT 可切换
+- [x] ATE 对比数据产出
 
 ### Week 5
 - [ ] 10 次完整探索实验数据

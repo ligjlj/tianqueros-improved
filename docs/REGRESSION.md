@@ -11,7 +11,7 @@
 | REG-005 | 只有 MotionController 发布 `/cmd_vel` | `rostopic info /cmd_vel` 显示唯一发布者 = motion_controller | ✅ v0.1 |
 | REG-006 | GoalManager 黑名单 3 次失败后生效 | `markFailed × 3 → isBlacklisted() = true`；60s 后自动过期 | ✅ v0.4 |
 | REG-007 | MissionManager 状态转移正确 | BOOT→WAIT_MAP→INITIAL_SCAN→EXPLORATION→FINISHED 全链路走通 | ✅ v0.3 |
-| REG-008 | 全包编译零 error | `catkin_make` 10 packages clean | ⬜ 每次 PR 后验证 |
+| REG-008 | 全包编译零 error | `catkin_make` 10 packages clean | ✅ v0.5 |
 
 ## 验证流程
 
