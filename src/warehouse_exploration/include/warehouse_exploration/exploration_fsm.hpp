@@ -117,8 +117,7 @@ private:
 class ExplorationFSM {
 public:
   enum class State {
-    WAIT_FOR_MAP, INITIAL_SCAN, DETECT_FRONTIER, CLUSTER_FRONTIER,
-    SELECT_GOAL, PLAN_PATH, FOLLOW_PATH,
+    DETECT_FRONTIER, SELECT_GOAL, PLAN_PATH, FOLLOW_PATH,
     GOAL_REACHED, RECOVERY, REPLAN, UPDATE, FINISHED
   };
 
@@ -136,7 +135,7 @@ public:
   struct TickResult {
     WorldPoint goal;
     bool  new_goal     = false;
-    State state        = State::WAIT_FOR_MAP;
+    State state        = State::DETECT_FRONTIER;
     double coverage_pct = 0.0;
     int    frontier_count = 0;
     int    retry_count   = 0;
@@ -155,8 +154,6 @@ public:
 
 private:
   void transitionTo(State s);
-  void handleWaitForMap(TickResult& r, const GridMap& grid);
-  void handleInitialScan(TickResult& r);
   void handleDetectFrontier(TickResult& r, const GridMap& grid,
                             const WorldPoint& robot_pos);
   void handleSelectGoal(TickResult& r, const GridMap& grid,
@@ -167,7 +164,7 @@ private:
   void handleRecovery(TickResult& r);
 
   Config config_;
-  State  state_ = State::WAIT_FOR_MAP;
+  State  state_ = State::DETECT_FRONTIER;
   ros::Time state_enter_time_;
   ros::WallTime state_enter_wall_;
   ros::Time goal_start_time_;

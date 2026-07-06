@@ -1,9 +1,9 @@
 /// @file exploration_node.cpp
 /// Thin ROS wrapper for ExplorationFSM.
 ///
-/// Subscribes: /map, /odom, /global_path
+/// Subscribes: /map, /odom, /global_path, /exploration_enable
 /// Publishes:  /exploration_goal, /frontier_marker, /exploration_state
-/// Recovery:   publishes /cmd_vel directly during RECOVERY/INITIAL_SCAN phase
+/// Motion:     publishes /cmd_vel_recovery during RECOVERY phase
 
 #include <ros/ros.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -13,6 +13,7 @@
 #include <geometry_msgs/Twist.h>
 #include <visualization_msgs/Marker.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
 
 #include "warehouse_utils/grid_map.hpp"
 #include "warehouse_utils/csv_logger.hpp"
@@ -39,18 +40,19 @@ public:
     fsm_ = ExplorationFSM(fsm_cfg);
 
     GridMap::Config gcfg;
-    nh_.param("inflation_radius_m", gcfg.inflation_radius_m, 1.0);
-    nh_.param("robot_radius_m",     gcfg.robot_radius_m,     0.5);
+    nh_.param("inflation_radius_m", gcfg.inflation_radius_m, 0.3);
+    nh_.param("robot_radius_m",     gcfg.robot_radius_m,     0.3);
     grid_ = GridMap(gcfg);
 
-    map_sub_  = nh_.subscribe("/map", 1, &ExplorationNode::mapCb, this);
-    odom_sub_ = nh_.subscribe("/odom", 1, &ExplorationNode::odomCb, this);
-    path_sub_ = nh_.subscribe("/global_path", 1, &ExplorationNode::pathCb, this);
+    map_sub_     = nh_.subscribe("/map", 1, &ExplorationNode::mapCb, this);
+    odom_sub_    = nh_.subscribe("/odom", 1, &ExplorationNode::odomCb, this);
+    path_sub_    = nh_.subscribe("/global_path", 1, &ExplorationNode::pathCb, this);
+    enable_sub_  = nh_.subscribe("/exploration_enable", 1, &ExplorationNode::enableCb, this);
 
-    goal_pub_      = nh_.advertise<geometry_msgs::PoseStamped>("/exploration_goal", 1, true);
-    cmd_pub_       = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-    frontier_pub_  = nh_.advertise<visualization_msgs::Marker>("/frontier_marker", 1);
-    state_pub_     = nh_.advertise<std_msgs::String>("/exploration_state", 1);
+    goal_pub_     = nh_.advertise<geometry_msgs::PoseStamped>("/exploration_goal", 1, true);
+    cmd_pub_      = nh_.advertise<geometry_msgs::Twist>("/cmd_vel_recovery", 1);
+    frontier_pub_ = nh_.advertise<visualization_msgs::Marker>("/frontier_marker", 1);
+    state_pub_    = nh_.advertise<std_msgs::String>("/exploration_state", 1);
 
     csv_ = std::make_shared<CsvLogger>(
         "/tmp/exploration_log.csv",
@@ -60,7 +62,7 @@ public:
           "robot_v", "retry_count", "stuck", "stagnant"});
 
     timer_ = nh_.createWallTimer(ros::WallDuration(0.1), &ExplorationNode::tick, this);
-    ROS_INFO("Exploration Node ready. FSM: WAIT_FOR_MAP");
+    ROS_INFO("Exploration Node ready. Waiting for /exploration_enable...");
   }
 
 private:
@@ -81,16 +83,19 @@ private:
   }
 
   void pathCb(const nav_msgs::Path::ConstPtr& msg) {
-    if (!msg->poses.empty()) {
-      fsm_.onPathReceived();
-    } else {
-      if (fsm_.state() == ExplorationFSM::State::PLAN_PATH)
-        fsm_.onPathFailed();
+    if (!msg->poses.empty()) fsm_.onPathReceived();
+    else if (fsm_.state() == ExplorationFSM::State::PLAN_PATH) fsm_.onPathFailed();
+  }
+
+  void enableCb(const std_msgs::Bool::ConstPtr& msg) {
+    if (msg->data && !exploration_enabled_) {
+      ROS_INFO("Exploration ENABLED by MissionManager.");
+      exploration_enabled_ = true;
     }
   }
 
   void tick(const ros::WallTimerEvent&) {
-    if (!has_map_ || !has_odom_) return;
+    if (!has_map_ || !has_odom_ || !exploration_enabled_) return;
 
     auto result = fsm_.tick(grid_, robot_pos_, robot_vx_, robot_vy_, robot_wz_);
 
@@ -98,30 +103,14 @@ private:
     state_msg.data = fsm_.stateName();
     state_pub_.publish(state_msg);
 
-    // ── Motion control (INITIAL_SCAN / RECOVERY only) ──────
-    // Only this node publishes cmd_vel during scan/recovery.
-    // During normal exploration, DWA controls cmd_vel.
+    // ── Recovery motion (goal.x < 0 = signal) ──────────────
     if (result.goal.x < -0.5) {
       geometry_msgs::Twist cmd;
-      if (result.goal.x < -1.5) {
-        cmd.angular.z = 0.8;   // Rotate (slower for better scan quality)
-      } else {
-        cmd.linear.x = -0.2;   // Backup
-      }
+      if (result.goal.x < -1.5) cmd.angular.z = 0.8;
+      else                      cmd.linear.x = -0.2;
       cmd_pub_.publish(cmd);
-      was_in_motion_ = true;
-    } else if (was_in_motion_) {
-      // Just exited motion mode — publish stop for 1 second.
-      geometry_msgs::Twist stop;
-      cmd_pub_.publish(stop);
-      if (++motion_stop_ticks_ > 10) {
-        motion_stop_ticks_ = 0;
-        was_in_motion_ = false;
-      }
+      return;
     }
-
-    // During motion mode, don't publish goals.
-    if (result.goal.x < -0.5 || was_in_motion_) return;
 
     // ── Publish exploration goal ───────────────────────────
     if (result.new_goal) {
@@ -159,16 +148,12 @@ private:
     visualization_msgs::Marker marker;
     marker.header.stamp    = ros::Time::now();
     marker.header.frame_id = "map";
-    marker.ns   = "frontiers";
-    marker.id   = 0;
+    marker.ns   = "frontiers"; marker.id = 0;
     marker.type = visualization_msgs::Marker::CUBE_LIST;
     marker.scale.x = grid_.resolution() * 2;
     marker.scale.y = grid_.resolution() * 2;
     marker.scale.z = 0.05;
-    marker.color.r = 0.0;
-    marker.color.g = 0.0;
-    marker.color.b = 1.0;
-    marker.color.a = 0.6;
+    marker.color.r = 0.0; marker.color.g = 0.0; marker.color.b = 1.0; marker.color.a = 0.6;
 
     for (const auto& cl : clusters)
       for (const auto& cell : cl.cells) {
@@ -181,7 +166,7 @@ private:
   }
 
   ros::NodeHandle nh_;
-  ros::Subscriber map_sub_, odom_sub_, path_sub_;
+  ros::Subscriber map_sub_, odom_sub_, path_sub_, enable_sub_;
   ros::Publisher  goal_pub_, cmd_pub_, frontier_pub_, state_pub_;
   ros::WallTimer  timer_;
 
@@ -192,8 +177,7 @@ private:
 
   bool has_map_  = false;
   bool has_odom_ = false;
-  bool was_in_motion_ = false;
-  int  motion_stop_ticks_ = 0;
+  bool exploration_enabled_ = false;
 
   std::shared_ptr<CsvLogger> csv_;
 };

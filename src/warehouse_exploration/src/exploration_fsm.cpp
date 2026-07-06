@@ -153,8 +153,7 @@ void MapProgressMonitor::reset() {
 // ═══════════════════════════════════════════════════════════════
 
 static const char* kStateNames[] = {
-  "WAIT_FOR_MAP","INITIAL_SCAN","DETECT_FRONTIER","CLUSTER_FRONTIER",
-  "SELECT_GOAL","PLAN_PATH","FOLLOW_PATH",
+  "DETECT_FRONTIER","SELECT_GOAL","PLAN_PATH","FOLLOW_PATH",
   "GOAL_REACHED","RECOVERY","REPLAN","UPDATE","FINISHED"
 };
 
@@ -194,8 +193,6 @@ ExplorationFSM::TickResult ExplorationFSM::tick(
   map_monitor_.update(r.coverage_pct);
 
   switch (state_) {
-    case State::WAIT_FOR_MAP:    handleWaitForMap(r, grid); break;
-    case State::INITIAL_SCAN:    handleInitialScan(r); break;
     case State::DETECT_FRONTIER: handleDetectFrontier(r, grid, robot_pos); break;
     case State::SELECT_GOAL:     handleSelectGoal(r, grid, robot_pos); break;
     case State::PLAN_PATH:       handlePlanPath(r); break;
@@ -213,29 +210,6 @@ ExplorationFSM::TickResult ExplorationFSM::tick(
 
   r.state = state_;
   return r;
-}
-
-// ── WAIT_FOR_MAP ──────────────────────────────────────────────
-void ExplorationFSM::handleWaitForMap(TickResult& r, const GridMap& grid) {
-  if (grid.width() > 0 && grid.height() > 0) {
-    ROS_INFO("Map ready. Starting initial scan...");
-    map_monitor_.reset();
-    transitionTo(State::INITIAL_SCAN);
-  }
-}
-
-// ── INITIAL_SCAN: rotate 360° to build initial map ────────────
-void ExplorationFSM::handleInitialScan(TickResult& r) {
-  double elapsed = (ros::WallTime::now() - state_enter_wall_).toSec();
-
-  if (elapsed < 8.0) {
-    // Signal to node: rotate (goal.x = -2.0 = rotate).
-    r.goal.x = -2.0;
-    ROS_INFO_THROTTLE(2, "INITIAL_SCAN: rotating to build map... (%.1fs)", elapsed);
-  } else {
-    ROS_INFO("Initial scan complete. Starting exploration.");
-    transitionTo(State::DETECT_FRONTIER);
-  }
 }
 
 // ── DETECT_FRONTIER + REACHABILITY FILTER ─────────────────────
