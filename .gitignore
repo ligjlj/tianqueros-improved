@@ -11,3 +11,7 @@ __pycache__/
 .idea/
 *.swp
 logs/
+data/
+output/
+.catkin_workspace
+src/CMakeLists.txt

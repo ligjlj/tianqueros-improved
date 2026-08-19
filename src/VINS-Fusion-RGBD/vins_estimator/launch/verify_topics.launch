@@ -1,0 +1,29 @@
+<launch>
+  <!-- VINS-Fusion Topic Verification Test -->
+  <!-- Plays EuRoC V1_01_easy bag, relays topics to project standard names, runs VINS -->
+  
+  <!-- Relay: bag's /imu0 → /imu (project standard) -->
+  <node pkg="topic_tools" type="relay" name="relay_imu"
+        args="/imu0 /imu" output="screen" />
+
+  <!-- Relay: bag's /cam0/image_raw → /camera/image_raw (project standard) -->
+  <node pkg="topic_tools" type="relay" name="relay_camera"
+        args="/cam0/image_raw /camera/image_raw" output="screen" />
+
+  <!-- Play EuRoC V1_01_easy bag at 1x speed -->
+  <node pkg="rosbag" type="play" name="rosbag_play"
+        args="$(find vins)/../../data/vicon_room1/V1_01_easy/V1_01_easy.bag --clock --topics /imu0 /cam0/image_raw"
+        output="screen" />
+
+  <!-- VINS-Fusion Estimator -->
+  <node pkg="vins" type="vins_node" name="vins_estimator"
+        args="$(find vins)/../config/verify_mono_imu_config.yaml"
+        output="screen">
+    <remap from="~odometry" to="/vins_estimator/odometry" />
+  </node>
+
+  <!-- Topic verification: echo odometry to verify publishing -->
+  <node pkg="rostopic" type="rostopic" name="verify_odometry"
+        args="echo -n 5 /vins_estimator/odometry" output="screen" />
+
+</launch>

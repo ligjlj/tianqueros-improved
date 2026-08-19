@@ -1,0 +1,24 @@
+<launch>
+  <!-- ============================================================
+       VINS-Fusion for Gazebo Simulation
+       ============================================================
+       
+       Input:  /camera/image_raw    (simulated RGB camera, 640x480)
+               /imu                 (simulated IMU, 100 Hz)
+       Output: /vins_estimator/odometry  (nav_msgs/Odometry)
+       
+       Usage:
+         roslaunch vins vins_simulation.launch
+       
+       Integration (include in demo_gazebo.launch after robot spawn):
+         <include file="$(find vins)/launch/vins_simulation.launch"/>
+  -->
+
+  <!-- VINS-Fusion Mono+IMU Estimator -->
+  <node pkg="vins" type="vins_node" name="vins_estimator"
+        args="$(find vins)/../config/simulation/sim_mono_imu_config.yaml"
+        output="screen">
+    <remap from="~odometry" to="/vins_estimator/odometry" />
+  </node>
+
+</launch>

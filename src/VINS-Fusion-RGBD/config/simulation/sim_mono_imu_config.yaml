@@ -1,0 +1,69 @@
+%YAML:1.0
+
+# VINS-Fusion configuration for Gazebo simulation
+# Camera: simulated pinhole 640x480, 60° HFOV
+# IMU:   simulated with noise (matches ground_robot.urdf)
+
+#common parameters
+imu: 1
+num_of_cam: 1
+
+imu_topic: "/imu"
+image0_topic: "/camera/image_raw"
+image1_topic: "/camera/image_raw"
+output_path: "/tmp/vins_output/"
+
+cam0_calib: "sim_cam0.yaml"
+cam1_calib: "sim_cam0.yaml"
+image_width: 640
+image_height: 480
+
+
+# Extrinsic parameter between IMU and Camera.
+# Camera at (0.25, 0, 0.12), IMU at (0, 0, 0.1) relative to base_link
+# body_T_cam0 = imu_T_camera: translation (0.25, 0, 0.02), rotation identity
+estimate_extrinsic: 0
+
+body_T_cam0: !!opencv-matrix
+   rows: 4
+   cols: 4
+   dt: d
+   data: [1, 0, 0, 0.25,
+          0, 1, 0, 0,
+          0, 0, 1, 0.02,
+          0, 0, 0, 1]
+
+#Multiple thread support
+multiple_thread: 0
+
+#feature tracker parameters
+max_cnt: 150
+min_dist: 30
+freq: 10
+F_threshold: 1.0
+show_track: 0
+flow_back: 1
+
+#optimization parameters
+max_solver_time: 0.04
+max_num_iterations: 8
+keyframe_parallax: 10.0
+
+#imu parameters (matching ground_robot.urdf noise model)
+acc_n: 0.1
+gyr_n: 0.01
+acc_w: 0.0001
+gyr_w: 0.00001
+g_norm: 9.81
+
+#unsynchronization parameters
+estimate_td: 0
+td: 0.0
+
+#depth registration
+depth: 0
+
+#loop closure parameters
+load_previous_pose_graph: 0
+pose_graph_save_path: "/tmp/vins_output/pose_graph/"
+save_image: 0
